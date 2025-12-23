@@ -1,227 +1,172 @@
 /**
  * Orbit Surface
- * Contemporary, not retro. Think Linear meets Arc.
+ *
+ * Visual Rules (from spec):
+ * - No lists, no checkboxes, no numbers
+ * - Opacity + proximity signal relevance
+ * - Hover = details
+ * - Click = single action
+ * - Motion is slow, predictable, optional
+ *
+ * Interactions:
+ * - Click = acknowledge
+ * - Double-click = quiet for now
+ * - / = add to orbit
  */
 
 .surface {
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #0c0c0f 0%, #13131a 100%);
+  background: #0d1117;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
   color: rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  cursor: default;
+  position: relative;
 }
 
-/* Subtle ambient glow in center */
-.surface::before {
-  content: '';
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* Context - minimal */
+/* Context label - barely visible */
 .place {
   position: fixed;
-  top: 20px;
-  left: 20px;
+  top: 24px;
+  left: 24px;
   font-size: 11px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  transition: color 0.2s;
+  text-transform: lowercase;
+  letter-spacing: 0.05em;
+  transition: color 0.3s;
 }
 
 .place:hover {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
-/* Orbit container */
-.orbit {
-  position: relative;
-  width: 380px;
-  height: 380px;
-}
-
-/* Center - just a soft glow, no hard shape */
+/* Center dot - pulses slowly */
 .center {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  background: rgba(255, 255, 255, 0.6);
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 50%;
-  box-shadow:
-    0 0 40px 8px rgba(99, 102, 241, 0.3),
-    0 0 80px 20px rgba(99, 102, 241, 0.1);
+  animation: pulse 6s ease-in-out infinite;
 }
 
-/* No visible rings - remove the 90s vibe */
-.ring {
-  display: none;
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+    box-shadow: 0 0 30px 8px rgba(129, 140, 248, 0.2);
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+    box-shadow: 0 0 50px 12px rgba(129, 140, 248, 0.3);
+  }
 }
 
-/* Orbit item */
+/* Orbit item - drifts lazily */
 .item {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform:
-    rotate(var(--angle))
-    translateX(var(--distance))
-    rotate(calc(-1 * var(--angle)));
   cursor: pointer;
-  opacity: var(--opacity, 0.6);
+  opacity: var(--opacity, 0.5);
   transition: opacity 0.4s ease;
-  animation: orbit 90s linear infinite;
-  animation-delay: calc(var(--angle) / 360 * -90s);
+  animation: drift 120s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes drift {
+  0% {
+    transform:
+      rotate(calc(var(--angle) + 0deg))
+      translateX(var(--distance))
+      scaleY(var(--ellipse, 0.9))
+      rotate(calc(-1 * (var(--angle) + 0deg)));
+  }
+  25% {
+    transform:
+      rotate(calc(var(--angle) + 90deg))
+      translateX(calc(var(--distance) * 1.05))
+      scaleY(var(--ellipse, 0.9))
+      rotate(calc(-1 * (var(--angle) + 90deg)));
+  }
+  50% {
+    transform:
+      rotate(calc(var(--angle) + 180deg))
+      translateX(var(--distance))
+      scaleY(var(--ellipse, 0.9))
+      rotate(calc(-1 * (var(--angle) + 180deg)));
+  }
+  75% {
+    transform:
+      rotate(calc(var(--angle) + 270deg))
+      translateX(calc(var(--distance) * 0.95))
+      scaleY(var(--ellipse, 0.9))
+      rotate(calc(-1 * (var(--angle) + 270deg)));
+  }
+  100% {
+    transform:
+      rotate(calc(var(--angle) + 360deg))
+      translateX(var(--distance))
+      scaleY(var(--ellipse, 0.9))
+      rotate(calc(-1 * (var(--angle) + 360deg)));
+  }
 }
 
 .item:hover {
   opacity: 1;
 }
 
-.item.expanded {
-  opacity: 1;
-  z-index: 100;
-  animation-play-state: paused;
-}
-
-@keyframes orbit {
-  from {
-    transform:
-      rotate(calc(var(--angle) + 0deg))
-      translateX(var(--distance))
-      rotate(calc(-1 * (var(--angle) + 0deg)));
-  }
-  to {
-    transform:
-      rotate(calc(var(--angle) + 360deg))
-      translateX(var(--distance))
-      rotate(calc(-1 * (var(--angle) + 360deg)));
-  }
-}
-
-/* Item dot - softer, with glow */
-.item-dot {
+/* Item dot */
+.dot {
   width: 10px;
   height: 10px;
-  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  background: #818cf8;
   border-radius: 50%;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 12px rgba(129, 140, 248, 0.4);
 }
 
-.item:hover .item-dot {
+.item:hover .dot {
   transform: scale(1.3);
-  box-shadow: 0 0 24px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.6);
 }
 
-.item.expanded .item-dot {
-  transform: scale(1.2);
+.item.pinned .dot {
+  background: #fbbf24;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
 }
 
-.item.pinned .item-dot {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
-}
-
-/* Item label - appears below */
-.item-label {
+/* Label - appears on hover */
+.label {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 18px;
+  top: 16px;
   font-size: 12px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.85);
   white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  pointer-events: none;
-  max-width: 180px;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.item:hover .item-label,
-.item.expanded .item-label {
-  opacity: 1;
-}
-
-/* Item actions - glass morphism */
-.item-actions {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 38px;
-  display: flex;
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 4px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-}
-
-.item-actions button {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.item-actions button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.item-actions button.active {
-  color: #fbbf24;
-}
-
-.item-actions button.danger:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
-
-.item-actions button svg {
-  width: 15px;
-  height: 15px;
+  pointer-events: none;
 }
 
 /* Empty state */
 .empty {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   font-size: 13px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.15);
   letter-spacing: 0.02em;
 }
 
-/* Input - clean, minimal */
+/* Input - minimal */
 .add {
   position: fixed;
   bottom: 28px;
@@ -230,41 +175,38 @@
 }
 
 .add input {
-  width: 260px;
+  width: 240px;
   padding: 12px 20px;
   font-family: inherit;
   font-size: 14px;
-  font-weight: 400;
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   outline: none;
   text-align: center;
   transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .add input::placeholder {
-  color: rgba(255, 255, 255, 0.2);
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.15);
 }
 
 .add input:focus {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-/* Selection */
-::selection {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(129, 140, 248, 0.3);
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .item {
+    animation: none;
+    transform:
+      rotate(var(--angle))
+      translateX(var(--distance))
+      rotate(calc(-1 * var(--angle)));
+  }
+  .center {
     animation: none;
   }
 }
