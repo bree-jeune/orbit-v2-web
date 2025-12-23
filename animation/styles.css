@@ -1,51 +1,78 @@
 body {
-    background: radial-gradient(#000015, #000);
-    margin: 0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    font-family: sans-serif;
-    color: #ffffff;
-}
+      background: radial-gradient(#000015, #000);
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+      color: #ffffff;
+    }
 
-.universe {
-    position: relative;
-    width: 400px;
-    height: 400px;
-}
+    .universe {
+      position: relative;
+      width: 400px;
+      height: 400px;
+    }
 
-.planet-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 80px;
-    height: 80px;
-    background: radial-gradient(circle at 30% 30%, #2e62ff, #000066);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    animation: spin 8s linear infinite;
-}
+    .planet-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle at 30% 30%, #2e62ff, #000066);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: spin 8s linear infinite;
+    }
 
-.orbit {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 250px;
-    height: 250px;
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-}
+    .orbit {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 250px;
+      height: 250px;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
 
-.planet {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform-origin: -120px center;
-}
+    .planet {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform-origin: -120px center;
+    }
 
+    .teal {
+      background: radial-gradient(circle at 30% 30%, #00ffff, #008888);
+      animation: orbit-fast 4s linear infinite;
+    }
+
+    .yellow {
+      background: radial-gradient(circle at 30% 30%, #ffeb3b, #c9a000);
+      animation: orbit-slow 12s linear infinite;
+    }
+
+    /* SPIN center planet */
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* FAST teal orbit */
+    @keyframes orbit-fast {
+      0% { transform: rotate(0deg) translateX(120px); }
+      100% { transform: rotate(360deg) translateX(120px); }
+    }
+
+    /* SLOW yellow orbit */
+    @keyframes orbit-slow {
+      0% { transform: rotate(0deg) translateX(120px); }
+      100% { transform: rotate(360deg) translateX(120px); }
+    }
