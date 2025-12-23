@@ -17,7 +17,7 @@ export const SCORING_WEIGHTS = {
   FREQUENCY: 0.15, // How often accessed
   PINNED: 0.10,    // User pinned items
   NOVELTY: 0.05,   // Boost for new items
-};
+} as const;
 
 // Validate weights sum to 1.0
 const weightSum = Object.values(SCORING_WEIGHTS).reduce((a, b) => a + b, 0);

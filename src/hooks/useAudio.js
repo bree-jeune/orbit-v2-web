@@ -7,7 +7,7 @@
  */
 
 import { useRef, useCallback, useEffect, useState } from 'react';
-import { AUDIO, STORAGE_KEYS } from '../config/constants.js';
+import { AUDIO, STORAGE_KEYS } from '../config/constants';
 
 /**
  * Audio manager hook

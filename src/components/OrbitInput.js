@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ITEM_DEFAULTS, ANIMATION } from '../config/constants.js';
+import { ITEM_DEFAULTS, ANIMATION } from '../config/constants';
 
 export default function OrbitInput({ totalItems, onAdd }) {
   const [inputValue, setInputValue] = useState('');

@@ -5,7 +5,7 @@
  * Zero auth in v1
  */
 
-import { STORAGE_KEYS, ITEM_DEFAULTS } from '../config/constants.js';
+import { STORAGE_KEYS, ITEM_DEFAULTS } from '../config/constants';
 
 const STORAGE_KEY = STORAGE_KEYS.ITEMS;
 const SETTINGS_KEY = 'orbit_settings';

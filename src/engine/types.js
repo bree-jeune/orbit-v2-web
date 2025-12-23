@@ -7,7 +7,7 @@
  * Velocity = how fast relevance is changing
  */
 
-import { ITEM_DEFAULTS, STORAGE_KEYS } from '../config/constants.js';
+import { ITEM_DEFAULTS, STORAGE_KEYS } from '../config/constants';
 
 /**
  * @typedef {Object} OrbitContext

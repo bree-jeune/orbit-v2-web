@@ -21,7 +21,7 @@ import {
   setPlace,
 } from '../store/orbitStore.js';
 import { useAudio } from '../hooks/useAudio.js';
-import { ANIMATION } from '../config/constants.js';
+import { ANIMATION } from '../config/constants';
 import OrbitItem from './OrbitItem.js';
 import OrbitInput from './OrbitInput.js';
 import MusicToggle from './MusicToggle.js';

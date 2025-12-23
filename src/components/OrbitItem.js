@@ -10,7 +10,7 @@ import {
   PLANET_SIZES,
   ORBIT_RADII,
   DEBRIS_RINGS,
-} from '../config/constants.js';
+} from '../config/constants';
 
 export default function OrbitItem({
   item,

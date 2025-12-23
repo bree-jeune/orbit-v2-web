@@ -5,7 +5,7 @@
  * Each signal contributes weight, not rules.
  */
 
-import { SCORING_WEIGHTS, ITEM_DEFAULTS } from '../config/constants.js';
+import { SCORING_WEIGHTS, ITEM_DEFAULTS } from '../config/constants';
 
 // Use centralized weights
 const WEIGHTS = SCORING_WEIGHTS;
