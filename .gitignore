@@ -3,6 +3,3 @@ dist/
 public/
 public/static/
 
-# Ignore all .md files
-*.md
-
