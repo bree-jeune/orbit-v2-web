@@ -70,6 +70,8 @@ export default function OrbitInput({ totalItems, onAdd }) {
         <input
           ref={inputRef}
           type="text"
+          id="orbit-input"
+          name="orbit-input"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onFocus={() => setInputFocused(true)}
