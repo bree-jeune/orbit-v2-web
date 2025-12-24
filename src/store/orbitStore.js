@@ -7,7 +7,7 @@
 
 import { createItem, getCurrentContext } from '../engine/types.js';
 import { rankItems, recordInteraction, pinItem, unpinItem, quietItem } from '../engine/rank.js';
-import { getAllItems, saveAllItems, addItem as storageAddItem, updateItem, removeItem } from '../services/storage.js';
+import { getAllItems, saveAllItems, addItem as storageAddItem, updateItem, removeItem, migrateToEncrypted } from '../services/storage.js';
 
 // Simple pub/sub for state updates
 const listeners = new Set();
@@ -50,6 +50,9 @@ function notify() {
 export async function initialize() {
   state.isLoading = true;
   notify();
+
+  // Migrate unencrypted data to encrypted (one-time)
+  await migrateToEncrypted();
 
   const items = await getAllItems();
   const context = getCurrentContext();

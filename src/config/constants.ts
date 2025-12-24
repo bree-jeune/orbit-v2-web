@@ -89,6 +89,14 @@ export const AUDIO = {
     // Background
     ambient: '/sounds/Space Ambience.mp3',
   },
+  // SHA-256 hashes for integrity verification
+  HASHES: {
+    newItem: '8d70fdcbb13027b2d529d36544b51d0f9dd9be45f44bf13de1cd2175a84ab939',
+    modeSwitch: 'd1548899e16d8d56795c35aa5e6a11ccc73ad7de05142593f9d8c46db28ee899',
+    markDone: 'f44044c6a0203e4ce5389a0e3c4128f157b7a51d8541b6e3258fe6c9ae063bf4',
+    reminder: '7ec6bab782b6d60f2df8ca2760113a514918253e5bd65f08c9945758c4e3629a',
+    ambient: '8ed7a8ad746ce3ebd6bc31c03fd5af658a68c11519e8cc2715a1f1b1288e8ddf',
+  },
   VOLUMES: {
     newItem: 0.3,
     modeSwitch: 0.25,
@@ -99,6 +107,7 @@ export const AUDIO = {
   DEBOUNCE_MS: 80,
   REMINDER_INTERVAL_MS: 3 * 60 * 60 * 1000, // 3 hours between reminders
   REMINDER_AGE_HOURS: 4,                     // Items older than 4 hours trigger reminders
+  VERIFY_INTEGRITY: true,                    // Enable file integrity checks
   // 8D/Immersive audio settings
   IMMERSIVE: {
     PAN_SPEED: 0.0005,        // How fast the sound moves around

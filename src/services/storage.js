@@ -1,14 +1,18 @@
 /**
  * Orbit Storage Service
  *
- * Local storage first (sync later)
- * Zero auth in v1
+ * Local storage with optional encryption via Web Crypto API.
+ * Backwards compatible with unencrypted data.
  */
 
 import { STORAGE_KEYS, ITEM_DEFAULTS } from '../config/constants';
+import { encrypt, decrypt, isCryptoAvailable } from './crypto.js';
 
 const STORAGE_KEY = STORAGE_KEYS.ITEMS;
 const SETTINGS_KEY = 'orbit_settings';
+
+// Flag to enable/disable encryption (can be toggled for debugging)
+const ENCRYPTION_ENABLED = true;
 
 /**
  * Get all items from storage
@@ -25,9 +29,18 @@ export async function getAllItems() {
       });
     }
 
-    // Fall back to localStorage
+    // Fall back to localStorage with decryption
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) return [];
+
+    // Check if data is encrypted
+    if (data.startsWith('enc:') && ENCRYPTION_ENABLED && isCryptoAvailable()) {
+      const decrypted = await decrypt(data);
+      return JSON.parse(decrypted);
+    }
+
+    // Unencrypted data (backwards compatible)
+    return JSON.parse(data);
   } catch (e) {
     console.error('Storage read failed:', e);
     return [];
@@ -48,8 +61,15 @@ export async function saveAllItems(items) {
       });
     }
 
-    // Fall back to localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    // Fall back to localStorage with encryption
+    const json = JSON.stringify(items);
+
+    if (ENCRYPTION_ENABLED && isCryptoAvailable()) {
+      const encrypted = await encrypt(json);
+      localStorage.setItem(STORAGE_KEY, encrypted);
+    } else {
+      localStorage.setItem(STORAGE_KEY, json);
+    }
   } catch (e) {
     console.error('Storage write failed:', e);
   }
@@ -138,4 +158,23 @@ function defaultSettings() {
     place: 'unknown',
     theme: 'dark',
   };
+}
+
+/**
+ * Migrate unencrypted data to encrypted
+ * Call this once on app startup if needed
+ */
+export async function migrateToEncrypted() {
+  if (!ENCRYPTION_ENABLED || !isCryptoAvailable()) return;
+
+  const data = localStorage.getItem(STORAGE_KEY);
+  if (!data || data.startsWith('enc:')) return; // Already encrypted or empty
+
+  try {
+    const items = JSON.parse(data);
+    await saveAllItems(items); // Re-save with encryption
+    console.log('[Storage] Migrated to encrypted storage');
+  } catch (e) {
+    console.error('[Storage] Migration failed:', e);
+  }
 }

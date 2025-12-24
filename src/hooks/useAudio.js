@@ -8,10 +8,84 @@
  * - Mark done sound
  * - Reminder sound for old items
  * - Immersive 8D spatial audio for ambient background
+ * - File integrity verification via SHA-256
  */
 
 import { useRef, useCallback, useEffect, useState } from 'react';
 import { AUDIO, STORAGE_KEYS } from '../config/constants';
+
+// =============================================================================
+// Audio Integrity Verification
+// =============================================================================
+
+/**
+ * Compute SHA-256 hash of an ArrayBuffer
+ */
+async function computeHash(buffer) {
+  try {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    console.warn('[Audio] Hash computation unavailable:', e);
+    return null;
+  }
+}
+
+/**
+ * Verify audio file integrity
+ */
+async function verifyAudioFile(url, expectedHash) {
+  if (!AUDIO.VERIFY_INTEGRITY || !expectedHash) return true;
+
+  try {
+    const response = await fetch(url);
+    const buffer = await response.arrayBuffer();
+    const actualHash = await computeHash(buffer);
+
+    if (actualHash && actualHash !== expectedHash) {
+      console.error(`[Audio] Integrity check FAILED for ${url}`);
+      console.error(`  Expected: ${expectedHash}`);
+      console.error(`  Actual:   ${actualHash}`);
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.warn('[Audio] Integrity check failed:', e);
+    return true; // Don't block on network errors
+  }
+}
+
+// Track verified files to avoid re-checking
+const verifiedFiles = new Set();
+
+/**
+ * Create verified audio element
+ */
+async function createVerifiedAudio(soundKey) {
+  const url = AUDIO.SOUNDS[soundKey];
+  const hash = AUDIO.HASHES?.[soundKey];
+
+  // Only verify once per session
+  if (!verifiedFiles.has(soundKey) && AUDIO.VERIFY_INTEGRITY) {
+    const isValid = await verifyAudioFile(url, hash);
+    if (!isValid) {
+      console.warn(`[Audio] Skipping ${soundKey} due to failed integrity check`);
+      return null;
+    }
+    verifiedFiles.add(soundKey);
+  }
+
+  const audio = new Audio(url);
+  audio.volume = AUDIO.VOLUMES[soundKey];
+  audio.preload = 'auto';
+  return audio;
+}
+
+// =============================================================================
+// Audio Hook
+// =============================================================================
 
 /**
  * Audio manager hook with immersive spatial audio
@@ -34,35 +108,36 @@ export function useAudio() {
   const panPhaseRef = useRef(0);
 
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [audioReady, setAudioReady] = useState(false);
   const ambientLoaded = useRef(false);
+  const ambientVerified = useRef(false);
 
-  // Initialize SFX audio elements
+  // Initialize SFX audio elements with integrity verification
   useEffect(() => {
-    // New item sound
-    newItemRef.current = new Audio(AUDIO.SOUNDS.newItem);
-    newItemRef.current.volume = AUDIO.VOLUMES.newItem;
-    newItemRef.current.preload = 'auto';
+    async function initAudio() {
+      // Verify and create all SFX audio elements
+      const [newItem, modeSwitch, markDone, reminder] = await Promise.all([
+        createVerifiedAudio('newItem'),
+        createVerifiedAudio('modeSwitch'),
+        createVerifiedAudio('markDone'),
+        createVerifiedAudio('reminder'),
+      ]);
 
-    // Mode switch sound
-    modeSwitchRef.current = new Audio(AUDIO.SOUNDS.modeSwitch);
-    modeSwitchRef.current.volume = AUDIO.VOLUMES.modeSwitch;
-    modeSwitchRef.current.preload = 'auto';
+      newItemRef.current = newItem;
+      modeSwitchRef.current = modeSwitch;
+      markDoneRef.current = markDone;
+      reminderRef.current = reminder;
 
-    // Mark done sound
-    markDoneRef.current = new Audio(AUDIO.SOUNDS.markDone);
-    markDoneRef.current.volume = AUDIO.VOLUMES.markDone;
-    markDoneRef.current.preload = 'auto';
+      setAudioReady(true);
 
-    // Reminder sound
-    reminderRef.current = new Audio(AUDIO.SOUNDS.reminder);
-    reminderRef.current.volume = AUDIO.VOLUMES.reminder;
-    reminderRef.current.preload = 'auto';
-
-    // Check if ambient should auto-play
-    const musicPref = localStorage.getItem(STORAGE_KEYS.MUSIC_PREF);
-    if (musicPref === 'on') {
-      loadAndPlayAmbient();
+      // Check if ambient should auto-play
+      const musicPref = localStorage.getItem(STORAGE_KEYS.MUSIC_PREF);
+      if (musicPref === 'on') {
+        loadAndPlayAmbient();
+      }
     }
+
+    initAudio();
 
     return () => {
       newItemRef.current?.pause();
@@ -99,6 +174,16 @@ export function useAudio() {
     filterRef.current.connect(pannerRef.current);
     pannerRef.current.connect(ambientGainRef.current);
     ambientGainRef.current.connect(ctx.destination);
+
+    // Verify ambient audio integrity before loading
+    if (AUDIO.VERIFY_INTEGRITY && !ambientVerified.current) {
+      const isValid = await verifyAudioFile(AUDIO.SOUNDS.ambient, AUDIO.HASHES?.ambient);
+      if (!isValid) {
+        console.error('[Audio] Ambient audio failed integrity check');
+        return;
+      }
+      ambientVerified.current = true;
+    }
 
     // Load ambient audio buffer
     try {
@@ -228,5 +313,6 @@ export function useAudio() {
     playReminder,
     toggleMusic,
     isMusicPlaying,
+    audioReady,
   };
 }
