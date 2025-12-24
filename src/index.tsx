@@ -14,6 +14,11 @@ const root = createRoot(container);
 root.render(<App />);
 
 // Register service worker for PWA support
-if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+if (
+  process.env.NODE_ENV === "production" &&
+  "serviceWorker" in navigator &&
+  window.location.hostname !== "localhost"
+) {
   initializeServiceWorker();
 }
+

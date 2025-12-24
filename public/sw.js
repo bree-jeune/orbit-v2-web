@@ -150,8 +150,12 @@ async function staleWhileRevalidate(request) {
  * Check if a path is a static asset
  */
 function isStaticAsset(pathname) {
+  if (pathname === '/manifest.json') return false;
+
   const staticExtensions = ['.js', '.css', '.html', '.png', '.jpg', '.svg', '.mp3', '.wav'];
-  return staticExtensions.some((ext) => pathname.endsWith(ext)) || pathname === '/';
+
+return staticExtensions.some((ext) => pathname.endsWith(ext))
+    || pathname === '/';
 }
 
 // =============================================================================
