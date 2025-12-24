@@ -8,6 +8,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ITEM_DEFAULTS, ANIMATION } from '../config/constants';
 
+// Sanitize input to prevent storage abuse
+function sanitizeInput(value) {
+  return value
+    .trim()
+    .slice(0, ITEM_DEFAULTS.MAX_TITLE_LENGTH)
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control chars
+}
+
 export default function OrbitInput({ totalItems, onAdd }) {
   const [inputValue, setInputValue] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
@@ -31,8 +39,14 @@ export default function OrbitInput({ totalItems, onAdd }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const value = inputValue.trim();
+    const value = sanitizeInput(inputValue);
     if (!value) return;
+
+    // Prevent storage abuse
+    if (totalItems >= ITEM_DEFAULTS.MAX_ITEMS) {
+      showToast('Orbit is full - remove some items');
+      return;
+    }
 
     onAdd(value);
     setInputValue('');
@@ -62,6 +76,8 @@ export default function OrbitInput({ totalItems, onAdd }) {
           onBlur={() => setInputFocused(false)}
           placeholder="/"
           spellCheck={false}
+          maxLength={ITEM_DEFAULTS.MAX_TITLE_LENGTH}
+          autoComplete="off"
         />
       </form>
       {toast && <div className="toast">{toast}</div>}

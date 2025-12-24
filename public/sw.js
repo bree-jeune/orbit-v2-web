@@ -5,14 +5,16 @@
  * Strategy: Cache-first for static assets, network-first for API calls.
  */
 
-const CACHE_NAME = 'orbit-v1';
+const CACHE_NAME = 'orbit-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/bundle.js',
   '/sounds/Space Ambience.mp3',
-  '/sounds/envato_sfxgen_Dec_23_2025_9_59_33.mp3',
-  '/sounds/envato_sfxgen_Dec_23_2025_10_01_03.mp3',
+  '/sounds/17640 futuristic prompt-full.mp3',
+  '/sounds/Futuristic Reveal.wav',
+  '/sounds/Futuristic Feature Select.mp3',
+  '/sounds/Futuristic Power Generation.wav',
 ];
 
 // =============================================================================
