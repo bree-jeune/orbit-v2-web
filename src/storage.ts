@@ -31,7 +31,7 @@ export const storage = {
   },
 
   async set<T>(key: string, value: T): Promise<void> {
-    if (isChromeExtension) {
+    if (chromeStorage) {
       return new Promise((resolve) => {
         if (!chromeStorage) {
           resolve();
