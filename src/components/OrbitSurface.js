@@ -22,6 +22,7 @@ import {
   setPlace,
 } from '../store/orbitStore.js';
 import { useAudio } from '../hooks/useAudio.js';
+import { themeService } from '../services/themeService';
 import { ANIMATION, AUDIO, STORAGE_KEYS } from '../config/constants';
 import OrbitItem from './OrbitItem.js';
 import OrbitInput from './OrbitInput.js';
@@ -36,6 +37,8 @@ export default function OrbitSurface() {
   const [toast, setToast] = useState(null);
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [transitionClass, setTransitionClass] = useState('');
+  const [theme, setTheme] = useState(null);
+  const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
   const reminderTimeoutRef = useRef(null);
   const lastReminderRef = useRef(null);
 
@@ -143,8 +146,8 @@ export default function OrbitSurface() {
     }, 300);
   }, []);
 
-  const handleAddItem = useCallback((title) => {
-    addToOrbit(title);
+  const handleAddItem = useCallback((title, detail = '') => {
+    addToOrbit(title, detail);
     playNewItem();
   }, [playNewItem]);
 
@@ -160,6 +163,43 @@ export default function OrbitSurface() {
     setTimeout(() => setToast(null), ANIMATION.TOAST_DURATION);
   };
 
+  const handleGenerateTheme = async () => {
+    // Check if we have items
+    if (state.items.length === 0) {
+      showToast('Add items first to generate a vibe');
+      return;
+    }
+
+    const apiKey = localStorage.getItem('orbit_ai_key') || process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      showToast('Set AI Key in input first');
+      return;
+    }
+
+    setIsGeneratingTheme(true);
+    showToast('Reading the stars... ✨');
+
+    try {
+      const newTheme = await themeService.generateTheme(state.items, apiKey);
+      setTheme(newTheme);
+      showToast(`Vibe shifted: ${newTheme.mood}`);
+
+      // Update CSS variables for accent color if needed
+      if (newTheme.visual.accent) {
+        document.documentElement.style.setProperty('--orbit-accent', newTheme.visual.accent);
+      }
+
+      // Pass audio params to music toggle/hook if we were implementing dynamic audio
+      // console.log('Audio Vibe:', newTheme.audio);
+
+    } catch (error) {
+      console.error(error);
+      showToast('Failed to generate theme');
+    } finally {
+      setIsGeneratingTheme(false);
+    }
+  };
+
   const handleWalkthroughComplete = () => {
     setShowWalkthrough(false);
   };
@@ -171,7 +211,14 @@ export default function OrbitSurface() {
   }
 
   return (
-    <div className={`surface ${transitionClass}`} onClick={() => setExpandedId(null)}>
+    <div
+      className={`surface ${transitionClass}`}
+      onClick={() => setExpandedId(null)}
+      style={{
+        background: theme ? theme.visual.background : undefined,
+        transition: 'background 2s ease-in-out'
+      }}
+    >
       {/* Walkthrough for first-time users */}
       {showWalkthrough && (
         <Walkthrough onComplete={handleWalkthroughComplete} />
@@ -190,7 +237,16 @@ export default function OrbitSurface() {
       </div>
 
       {/* Music toggle */}
-      <MusicToggle isPlaying={isMusicPlaying} onToggle={toggleMusic} />
+      <div className="controls-row">
+        <MusicToggle isPlaying={isMusicPlaying} onToggle={toggleMusic} />
+        <button
+          className={`theme-btn ${isGeneratingTheme ? 'spinning' : ''}`}
+          onClick={(e) => { e.stopPropagation(); handleGenerateTheme(); }}
+          title="Generate Ambient Theme"
+        >
+          🎨
+        </button>
+      </div>
 
       {/* Center - bigger, pulses */}
       <div className="center" />

@@ -1,7 +1,8 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-
+const webpack = require("webpack");
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   mode: "development",
@@ -46,7 +47,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
-  new CopyWebpackPlugin({
+    new CopyWebpackPlugin({
       patterns: [
         {
           from: "public",
@@ -56,6 +57,9 @@ module.exports = {
           },
         },
       ],
+    }),
+    new Dotenv({
+      systemvars: true, // Load system variables as well (e.g. from CI/CD or shell exports)
     }),
   ],
   resolve: {

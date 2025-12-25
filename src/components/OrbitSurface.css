@@ -71,11 +71,22 @@
   letter-spacing: 0.05em;
 }
 
-/* Music toggle */
-.music-toggle {
+/* Controls Row - Music + Theme */
+.controls-row {
   position: fixed;
   bottom: 24px;
   right: 24px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Music toggle - updated positioning */
+.music-toggle {
+  position: relative;
+  /* Now inside flex container */
+  bottom: auto;
+  right: auto;
   width: 36px;
   height: 36px;
   display: flex;
@@ -87,6 +98,44 @@
   color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.theme-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.theme-btn.spinning {
+  animation: spin 2s linear infinite;
+  cursor: wait;
+  opacity: 0.7;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .music-toggle:hover {
@@ -125,13 +174,16 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     box-shadow:
       0 0 60px 15px rgba(59, 130, 246, 0.4),
       0 0 100px 30px rgba(30, 64, 175, 0.25),
       0 0 160px 60px rgba(30, 58, 138, 0.1);
   }
+
   50% {
     transform: scale(1.1);
     box-shadow:
@@ -163,21 +215,17 @@
 @keyframes drift {
   0% {
     transform:
-      rotate(calc(var(--angle) + 0deg))
-      translateX(var(--distance))
-      rotate(calc(-1 * (var(--angle) + 0deg)));
+      rotate(calc(var(--angle) + 0deg)) translateX(var(--distance)) rotate(calc(-1 * (var(--angle) + 0deg)));
   }
+
   50% {
     transform:
-      rotate(calc(var(--angle) + 180deg))
-      translateX(var(--distance))
-      rotate(calc(-1 * (var(--angle) + 180deg)));
+      rotate(calc(var(--angle) + 180deg)) translateX(var(--distance)) rotate(calc(-1 * (var(--angle) + 180deg)));
   }
+
   100% {
     transform:
-      rotate(calc(var(--angle) + 360deg))
-      translateX(var(--distance))
-      rotate(calc(-1 * (var(--angle) + 360deg)));
+      rotate(calc(var(--angle) + 360deg)) translateX(var(--distance)) rotate(calc(-1 * (var(--angle) + 360deg)));
   }
 }
 
@@ -223,8 +271,17 @@
 }
 
 @keyframes ring-pulse {
-  0%, 100% { opacity: var(--ring-opacity, 0); transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: calc(var(--ring-opacity, 0) * 0.7); transform: translate(-50%, -50%) scale(1.1); }
+
+  0%,
+  100% {
+    opacity: var(--ring-opacity, 0);
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    opacity: calc(var(--ring-opacity, 0) * 0.7);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
 }
 
 .item.hovered .dot {
@@ -389,6 +446,7 @@
     opacity: 0;
     transform: translateX(-50%) translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -400,13 +458,13 @@
   .item {
     animation: none;
     transform:
-      rotate(var(--angle))
-      translateX(var(--distance))
-      rotate(calc(-1 * var(--angle)));
+      rotate(var(--angle)) translateX(var(--distance)) rotate(calc(-1 * var(--angle)));
   }
+
   .center {
     animation: none;
   }
+
   .toast {
     animation: none;
   }
@@ -613,24 +671,61 @@
 }
 
 @keyframes modeTransition {
-  0% { background: #0d1117; }
-  30% { background: #0a0e14; }
-  50% { background: #0d1117; filter: brightness(1.2); }
-  100% { background: #0d1117; filter: brightness(1); }
+  0% {
+    background: #0d1117;
+  }
+
+  30% {
+    background: #0a0e14;
+  }
+
+  50% {
+    background: #0d1117;
+    filter: brightness(1.2);
+  }
+
+  100% {
+    background: #0d1117;
+    filter: brightness(1);
+  }
 }
 
 @keyframes centerPulse {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.3); filter: brightness(1.5); }
-  60% { transform: scale(0.9); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(1.3);
+    filter: brightness(1.5);
+  }
+
+  60% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes itemScatter {
-  0% { opacity: var(--opacity); }
-  30% { opacity: 0; transform: rotate(calc(var(--angle) + 0deg)) translateX(calc(var(--distance) * 1.5)) rotate(calc(-1 * (var(--angle) + 0deg))); }
-  60% { opacity: 0; }
-  100% { opacity: var(--opacity); }
+  0% {
+    opacity: var(--opacity);
+  }
+
+  30% {
+    opacity: 0;
+    transform: rotate(calc(var(--angle) + 0deg)) translateX(calc(var(--distance) * 1.5)) rotate(calc(-1 * (var(--angle) + 0deg)));
+  }
+
+  60% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: var(--opacity);
+  }
 }
 
 /* =============================================================================
@@ -658,13 +753,23 @@
 }
 
 @keyframes walkthroughIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes walkthroughOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 .walkthrough-spotlight {
@@ -741,6 +846,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -854,10 +960,13 @@
 }
 
 @keyframes reminderPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 0 16px rgba(0, 229, 255, 0.5);
   }
+
   50% {
     transform: scale(1.3);
     box-shadow: 0 0 30px rgba(0, 229, 255, 0.8), 0 0 60px rgba(0, 229, 255, 0.4);
@@ -906,9 +1015,9 @@
     transform: scale(0);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
   }
 }
-

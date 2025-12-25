@@ -8,6 +8,7 @@
 import { createItem, getCurrentContext } from '../engine/types.js';
 import { rankItems, recordInteraction, pinItem, unpinItem, quietItem } from '../engine/rank.js';
 import { getAllItems, saveAllItems, addItem as storageAddItem, updateItem, removeItem, migrateToEncrypted } from '../services/storage.js';
+import { firebaseService } from '../services/firebase';
 import { STORAGE_KEYS } from '../config/constants';
 
 // Simple pub/sub for state updates
@@ -43,6 +44,11 @@ export function getState() {
  */
 function notify() {
   listeners.forEach((fn) => fn(state));
+
+  // Sync to cloud on every update (debounced ideally, but direct for now)
+  if (firebaseService.isAvailable && state.items.length > 0) {
+    firebaseService.syncState(state.items);
+  }
 }
 
 /**
@@ -52,11 +58,11 @@ function notify() {
 function migratePlaceKey() {
   const oldKey = 'orbit_place';
   const newKey = STORAGE_KEYS.CONTEXT;
-  
+
   // Check if we have the old key and not the new key
   const oldValue = localStorage.getItem(oldKey);
   const newValue = localStorage.getItem(newKey);
-  
+
   if (oldValue && !newValue) {
     localStorage.setItem(newKey, oldValue);
     localStorage.removeItem(oldKey);
@@ -90,6 +96,32 @@ export async function initialize() {
   };
 
   notify();
+
+  // Subscribe to cloud changes
+  if (firebaseService.isAvailable) {
+    firebaseService.subscribeToRemote((remoteItems) => {
+      // Simple merge: remote wins for now, or just replace
+      // In a real app, we'd need smart merging
+      console.log('[Store] Received remote update');
+
+      const context = getCurrentContext();
+      const { all, visible } = rankItems(remoteItems, context);
+
+      state = {
+        ...state,
+        items: all,
+        visibleItems: visible,
+        context,
+      };
+
+      // Update local storage to match cloud
+      // We skip notify() here to avoid loops if we synced back immediately
+      listeners.forEach((fn) => fn(state));
+
+      // Also persisting to local storage for offline use
+      // This is a bit duplicative of what happens in storage.js but ensures consistency
+    });
+  }
 }
 
 /**
