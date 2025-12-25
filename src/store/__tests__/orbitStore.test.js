@@ -2,6 +2,16 @@ import { setPlace, initialize } from '../orbitStore';
 import { getCurrentContext } from '../../engine/types';
 import { STORAGE_KEYS } from '../../config/constants';
 
+// Mock the storage module
+jest.mock('../../services/storage.js', () => ({
+  getAllItems: jest.fn(() => Promise.resolve([])),
+  saveAllItems: jest.fn(() => Promise.resolve()),
+  addItem: jest.fn(() => Promise.resolve()),
+  updateItem: jest.fn(() => Promise.resolve()),
+  removeItem: jest.fn(() => Promise.resolve()),
+  migrateToEncrypted: jest.fn(() => Promise.resolve()),
+}));
+
 function createStorageMock() {
   let store = {};
   return {
@@ -46,19 +56,12 @@ describe('orbitStore place migration', () => {
     global.sessionStorage = createStorageMock();
     global.navigator = { userAgent: 'jest' };
     global.crypto = { randomUUID: jest.fn(() => 'test-uuid') };
-    
-    // Mock the storage module functions
-    jest.mock('../../services/storage.js', () => ({
-      getAllItems: jest.fn(() => Promise.resolve([])),
-      migrateToEncrypted: jest.fn(() => Promise.resolve()),
-    }));
   });
 
   afterEach(() => {
     localStorage.clear();
     sessionStorage.clear();
     jest.clearAllMocks();
-    jest.unmock('../../services/storage.js');
   });
 
   it('migrates old orbit_place key to orbit_context', async () => {
@@ -70,6 +73,8 @@ describe('orbitStore place migration', () => {
     
     // Check that new key has the migrated value
     expect(localStorage.getItem(STORAGE_KEYS.CONTEXT)).toBe('home');
+    // Check that old key was removed
+    expect(localStorage.getItem('orbit_place')).toBeNull();
   });
 
   it('does not overwrite existing orbit_context value', async () => {
@@ -82,6 +87,8 @@ describe('orbitStore place migration', () => {
     
     // Check that new key was not overwritten
     expect(localStorage.getItem(STORAGE_KEYS.CONTEXT)).toBe('work');
+    // Old key should still be present since migration didn't happen
+    expect(localStorage.getItem('orbit_place')).toBe('home');
   });
 
   it('does nothing when old key does not exist', async () => {

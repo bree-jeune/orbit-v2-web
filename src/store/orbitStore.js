@@ -59,6 +59,7 @@ function migratePlaceKey() {
   
   if (oldValue && !newValue) {
     localStorage.setItem(newKey, oldValue);
+    localStorage.removeItem(oldKey);
     console.log('[Store] Migrated place from orbit_place to orbit_context');
   }
 }
