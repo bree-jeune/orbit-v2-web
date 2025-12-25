@@ -3,7 +3,8 @@ const chromeStorage = (() => {
     return undefined;
   }
 
-  const browserChrome = (globalThis as { chrome?: typeof chrome }).chrome;
+  const browserChrome = (globalThis as { chrome?: { storage?: { local?: unknown } } })
+    .chrome;
   return browserChrome?.storage?.local;
 })();
 
