@@ -1,6 +1,4 @@
-import { setPlace } from '../orbitStore';
-import { getCurrentContext } from '../../engine/types';
-
+// Mock storage before any imports to ensure module-level code uses mocks
 function createStorageMock() {
   let store = {};
   return {
@@ -17,15 +15,18 @@ function createStorageMock() {
   };
 }
 
+global.localStorage = createStorageMock();
+global.sessionStorage = createStorageMock();
+global.navigator = { userAgent: 'jest' };
+global.crypto = { randomUUID: jest.fn(() => 'test-uuid') };
+
+// Now import modules - they will use the mocked globals
+import { setPlace } from '../orbitStore';
+import { getCurrentContext } from '../../engine/types';
+
 describe('orbitStore setPlace', () => {
   beforeEach(() => {
-    global.localStorage = createStorageMock();
-    global.sessionStorage = createStorageMock();
-    global.navigator = { userAgent: 'jest' };
-    global.crypto = { randomUUID: jest.fn(() => 'test-uuid') };
-  });
-
-  afterEach(() => {
+    // Reset storage state before each test
     localStorage.clear();
     sessionStorage.clear();
     jest.clearAllMocks();
