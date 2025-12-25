@@ -1,8 +1,4 @@
-import { setPlace, initialize } from '../orbitStore';
-import { getCurrentContext } from '../../engine/types';
-import { STORAGE_KEYS } from '../../config/constants';
-
-// Mock the storage module
+// Mock the storage module before any imports
 jest.mock('../../services/storage.js', () => ({
   getAllItems: jest.fn(() => Promise.resolve([])),
   saveAllItems: jest.fn(() => Promise.resolve()),
@@ -12,6 +8,7 @@ jest.mock('../../services/storage.js', () => ({
   migrateToEncrypted: jest.fn(() => Promise.resolve()),
 }));
 
+// Mock storage before any imports to ensure module-level code uses mocks
 function createStorageMock() {
   let store = {};
   return {
@@ -28,15 +25,19 @@ function createStorageMock() {
   };
 }
 
+global.localStorage = createStorageMock();
+global.sessionStorage = createStorageMock();
+global.navigator = { userAgent: 'jest' };
+global.crypto = { randomUUID: jest.fn(() => 'test-uuid') };
+
+// Now import modules - they will use the mocked globals
+import { setPlace, initialize } from '../orbitStore';
+import { getCurrentContext } from '../../engine/types';
+import { STORAGE_KEYS } from '../../config/constants';
+
 describe('orbitStore setPlace', () => {
   beforeEach(() => {
-    global.localStorage = createStorageMock();
-    global.sessionStorage = createStorageMock();
-    global.navigator = { userAgent: 'jest' };
-    global.crypto = { randomUUID: jest.fn(() => 'test-uuid') };
-  });
-
-  afterEach(() => {
+    // Reset storage state before each test
     localStorage.clear();
     sessionStorage.clear();
     jest.clearAllMocks();
@@ -52,13 +53,7 @@ describe('orbitStore setPlace', () => {
 
 describe('orbitStore place migration', () => {
   beforeEach(() => {
-    global.localStorage = createStorageMock();
-    global.sessionStorage = createStorageMock();
-    global.navigator = { userAgent: 'jest' };
-    global.crypto = { randomUUID: jest.fn(() => 'test-uuid') };
-  });
-
-  afterEach(() => {
+    // Reset storage state before each test
     localStorage.clear();
     sessionStorage.clear();
     jest.clearAllMocks();
