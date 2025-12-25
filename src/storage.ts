@@ -1,35 +1,24 @@
-type ChromeStorageArea = {
-  get: (
-    keys: string[] | string,
-    callback: (items: Record<string, unknown>) => void
-  ) => void;
-  set: (items: Record<string, unknown>, callback: () => void) => void;
-};
-
 const chromeStorage = (() => {
   if (typeof globalThis === "undefined") {
     return undefined;
   }
 
-  const browserChrome = (globalThis as { chrome?: { storage?: { local?: unknown } } }).chrome;
-  const localStorageArea = browserChrome?.storage?.local;
-
-  if (
-    localStorageArea &&
-    typeof localStorageArea === "object" &&
-    "get" in localStorageArea &&
-    "set" in localStorageArea
-  ) {
-    return localStorageArea as ChromeStorageArea;
-  }
-
-  return undefined;
+  const browserChrome = (globalThis as { chrome?: { storage?: { local?: unknown } } })
+    .chrome;
+  return browserChrome?.storage?.local;
 })();
+
+const isChromeExtension = !!chromeStorage;
 
 export const storage = {
   async get<T>(key: string, fallback: T): Promise<T> {
-    if (chromeStorage) {
+    if (isChromeExtension) {
       return new Promise<T>((resolve) => {
+        if (!chromeStorage) {
+          resolve(fallback);
+          return;
+        }
+
         chromeStorage.get([key], (result) => {
           resolve((result[key] as T) ?? fallback);
         });
@@ -44,6 +33,11 @@ export const storage = {
   async set<T>(key: string, value: T): Promise<void> {
     if (chromeStorage) {
       return new Promise((resolve) => {
+        if (!chromeStorage) {
+          resolve();
+          return;
+        }
+
         chromeStorage.set({ [key]: value }, () => resolve());
       });
     }
@@ -51,3 +45,4 @@ export const storage = {
     localStorage.setItem(key, JSON.stringify(value));
   },
 };
+
