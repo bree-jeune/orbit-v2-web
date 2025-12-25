@@ -6,6 +6,7 @@
  */
 
 import { createItem, getCurrentContext } from '../engine/types.js';
+import { STORAGE_KEYS } from '../config/constants';
 import { rankItems, recordInteraction, pinItem, unpinItem, quietItem } from '../engine/rank.js';
 import { getAllItems, saveAllItems, addItem as storageAddItem, updateItem, removeItem, migrateToEncrypted } from '../services/storage.js';
 import { STORAGE_KEYS } from '../config/constants';
@@ -46,11 +47,33 @@ function notify() {
 }
 
 /**
+ * Migrate old 'orbit_place' key to new STORAGE_KEYS.CONTEXT
+ * This is a one-time migration for backward compatibility
+ */
+function migratePlaceKey() {
+  const oldKey = 'orbit_place';
+  const newKey = STORAGE_KEYS.CONTEXT;
+  
+  // Check if we have the old key and not the new key
+  const oldValue = localStorage.getItem(oldKey);
+  const newValue = localStorage.getItem(newKey);
+  
+  if (oldValue && !newValue) {
+    localStorage.setItem(newKey, oldValue);
+    localStorage.removeItem(oldKey);
+    console.log('[Store] Migrated place from orbit_place to orbit_context');
+  }
+}
+
+/**
  * Initialize store - load items and compute initial ranking
  */
 export async function initialize() {
   state.isLoading = true;
   notify();
+
+  // Migrate old place key to new key (one-time)
+  migratePlaceKey();
 
   // Migrate unencrypted data to encrypted (one-time)
   await migrateToEncrypted();
