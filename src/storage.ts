@@ -1,17 +1,9 @@
-type ChromeStorageArea = {
-  get: (
-    keys: string[] | string,
-    callback: (items: Record<string, unknown>) => void
-  ) => void;
-  set: (items: Record<string, unknown>, callback: () => void) => void;
-};
-
 const chromeStorage = (() => {
   if (typeof globalThis === "undefined") {
     return undefined;
   }
 
-  const browserChrome = (globalThis as { chrome?: { storage?: { local?: ChromeStorageArea } } })
+  const browserChrome = (globalThis as { chrome?: { storage?: { local?: unknown } } })
     .chrome;
   return browserChrome?.storage?.local;
 })();
