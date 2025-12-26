@@ -6,11 +6,13 @@ export interface ThemeResult {
     visual: {
         background: string; // CSS gradient value
         accent: string;     // Hex color
+        textColor: string;  // Hex color for text (high contrast)
     };
     audio: {
         bpm: number;        // Beats per minute (60-120)
         roughness: number;  // 0-1 (clean vs distorted)
         key: string;        // e.g. "C_MAJOR", "F_MINOR"
+        noiseType: 'brownNoise' | 'pinkNoise' | 'ambient';
     };
     mood: string;         // Description
 }
@@ -34,12 +36,16 @@ export const themeService = {
       {
         "visual": {
           "background": "valid linear-gradient CSS string (e.g. 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)')",
-          "accent": "hex color code for buttons"
+          "accent": "hex color code for buttons",
+          "textColor": "hex color code for text (Ensure high contrast with background, usually #ffffff or #000000)"
         },
         "audio": {
           "bpm": number (40-100),
           "roughness": number (0.0 to 1.0),
-          "key": "musical key string"
+          "bpm": number (40-100),
+          "roughness": number (0.0 to 1.0),
+          "key": "musical key string",
+          "noiseType": "brownNoise" | "pinkNoise" | "ambient" (Use brown for focus/deep work, pink for balance, ambient for space)
         },
         "mood": "short description of the mood"
       }
@@ -73,9 +79,10 @@ export const themeService = {
             return {
                 visual: {
                     background: 'linear-gradient(to bottom, #0f172a, #1e1e2e)',
-                    accent: '#00E5FF'
+                    accent: '#00E5FF',
+                    textColor: '#ffffff'
                 },
-                audio: { bpm: 60, roughness: 0, key: 'C_MAJOR' },
+                audio: { bpm: 60, roughness: 0, key: 'C_MAJOR', noiseType: 'ambient' },
                 mood: 'default cosmic'
             };
         }

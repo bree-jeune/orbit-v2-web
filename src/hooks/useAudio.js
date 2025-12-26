@@ -9,6 +9,7 @@
  * - Reminder sound for old items
  * - Immersive 8D spatial audio for ambient background
  * - File integrity verification via SHA-256
+ * - Multiple noise types (Brown, Pink, Ambient)
  */
 
 import { useRef, useCallback, useEffect, useState } from 'react';
@@ -109,6 +110,7 @@ export function useAudio() {
 
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
+  const [noiseType, setNoiseType] = useState('ambient'); // 'ambient', 'brownNoise', 'pinkNoise'
   const ambientLoaded = useRef(false);
   const ambientVerified = useRef(false);
 
@@ -133,7 +135,9 @@ export function useAudio() {
       // Check if ambient should auto-play
       const musicPref = localStorage.getItem(STORAGE_KEYS.MUSIC_PREF);
       if (musicPref === 'on') {
-        loadAndPlayAmbient();
+        const savedNoise = localStorage.getItem('orbit_noise_type') || 'ambient';
+        setNoiseType(savedNoise);
+        loadAndPlayAmbient(savedNoise);
       }
     }
 
@@ -174,27 +178,28 @@ export function useAudio() {
     filterRef.current.connect(pannerRef.current);
     pannerRef.current.connect(ambientGainRef.current);
     ambientGainRef.current.connect(ctx.destination);
-
-    // Verify ambient audio integrity before loading
-    if (AUDIO.VERIFY_INTEGRITY && !ambientVerified.current) {
-      const isValid = await verifyAudioFile(AUDIO.SOUNDS.ambient, AUDIO.HASHES?.ambient);
-      if (!isValid) {
-        console.error('[Audio] Ambient audio failed integrity check');
-        return;
-      }
-      ambientVerified.current = true;
-    }
-
-    // Load ambient audio buffer
-    try {
-      const response = await fetch(AUDIO.SOUNDS.ambient);
-      const arrayBuffer = await response.arrayBuffer();
-      ambientBufferRef.current = await ctx.decodeAudioData(arrayBuffer);
-      ambientLoaded.current = true;
-    } catch (e) {
-      console.warn('Failed to load ambient audio:', e);
-    }
   }, []);
+
+  // Load buffer for a specific type
+  const loadBuffer = useCallback(async (type) => {
+    await initAudioContext();
+    const ctx = audioContextRef.current;
+
+    // Verify integrity first
+    if (AUDIO.VERIFY_INTEGRITY) {
+      const isValid = await verifyAudioFile(AUDIO.SOUNDS[type], AUDIO.HASHES?.[type]);
+      if (!isValid) return null;
+    }
+
+    try {
+      const response = await fetch(AUDIO.SOUNDS[type]);
+      const arrayBuffer = await response.arrayBuffer();
+      return await ctx.decodeAudioData(arrayBuffer);
+    } catch (e) {
+      console.warn('Failed to load audio buffer:', e);
+      return null;
+    }
+  }, [initAudioContext]);
 
   // Animate 8D panning effect
   const animatePanning = useCallback(() => {
@@ -224,18 +229,22 @@ export function useAudio() {
   }, [isMusicPlaying, animatePanning]);
 
   // Load and play ambient with immersive effect
-  const loadAndPlayAmbient = useCallback(async () => {
+  const loadAndPlayAmbient = useCallback(async (type = 'ambient') => {
     await initAudioContext();
-
-    if (!ambientBufferRef.current) {
-      // Fallback: wait a bit and retry
-      setTimeout(() => loadAndPlayAmbient(), 500);
-      return;
-    }
-
     const ctx = audioContextRef.current;
+
+    const buffer = await loadBuffer(type);
+    if (!buffer) return;
+
+    ambientBufferRef.current = buffer;
+
     if (ctx.state === 'suspended') {
       await ctx.resume();
+    }
+
+    // Stop existing if any
+    if (ambientSourceRef.current) {
+      try { ambientSourceRef.current.stop(); } catch (e) { }
     }
 
     // Create new source (sources can only be played once)
@@ -245,8 +254,13 @@ export function useAudio() {
     ambientSourceRef.current.connect(filterRef.current);
     ambientSourceRef.current.start();
 
+    // Update gain based on type
+    if (ambientGainRef.current) {
+      ambientGainRef.current.gain.value = AUDIO.VOLUMES[type] || AUDIO.VOLUMES.ambient;
+    }
+
     setIsMusicPlaying(true);
-  }, [initAudioContext]);
+  }, [initAudioContext, loadBuffer]);
 
   const stopAmbient = useCallback(() => {
     if (ambientSourceRef.current) {
@@ -263,11 +277,20 @@ export function useAudio() {
     setIsMusicPlaying(false);
   }, []);
 
+  // Switch noise type
+  const switchNoise = useCallback(async (newType) => {
+    setNoiseType(newType);
+    localStorage.setItem('orbit_noise_type', newType);
+    if (isMusicPlaying) {
+      await loadAndPlayAmbient(newType);
+    }
+  }, [isMusicPlaying, loadAndPlayAmbient]);
+
   // Play new item SFX
   const playNewItem = useCallback(() => {
     if (newItemRef.current) {
       newItemRef.current.currentTime = 0;
-      newItemRef.current.play().catch(() => {});
+      newItemRef.current.play().catch(() => { });
     }
   }, []);
 
@@ -275,7 +298,7 @@ export function useAudio() {
   const playModeSwitch = useCallback(() => {
     if (modeSwitchRef.current) {
       modeSwitchRef.current.currentTime = 0;
-      modeSwitchRef.current.play().catch(() => {});
+      modeSwitchRef.current.play().catch(() => { });
     }
   }, []);
 
@@ -283,7 +306,7 @@ export function useAudio() {
   const playMarkDone = useCallback(() => {
     if (markDoneRef.current) {
       markDoneRef.current.currentTime = 0;
-      markDoneRef.current.play().catch(() => {});
+      markDoneRef.current.play().catch(() => { });
     }
   }, []);
 
@@ -291,7 +314,7 @@ export function useAudio() {
   const playReminder = useCallback(() => {
     if (reminderRef.current) {
       reminderRef.current.currentTime = 0;
-      reminderRef.current.play().catch(() => {});
+      reminderRef.current.play().catch(() => { });
     }
   }, []);
 
@@ -301,10 +324,10 @@ export function useAudio() {
       stopAmbient();
       localStorage.setItem(STORAGE_KEYS.MUSIC_PREF, 'off');
     } else {
-      loadAndPlayAmbient();
+      loadAndPlayAmbient(noiseType);
       localStorage.setItem(STORAGE_KEYS.MUSIC_PREF, 'on');
     }
-  }, [isMusicPlaying, stopAmbient, loadAndPlayAmbient]);
+  }, [isMusicPlaying, stopAmbient, loadAndPlayAmbient, noiseType]);
 
   return {
     playNewItem,
@@ -312,6 +335,8 @@ export function useAudio() {
     playMarkDone,
     playReminder,
     toggleMusic,
+    switchNoise,
+    noiseType,
     isMusicPlaying,
     audioReady,
   };

@@ -88,6 +88,8 @@ export const AUDIO = {
     reminder: '/sounds/Futuristic Power Generation.wav',     // Reminder for old items
     // Background
     ambient: '/sounds/Space Ambience.mp3',
+    brownNoise: '/sounds/Space Ambience.mp3', // Placeholder: Replace with actual Brown Noise
+    pinkNoise: '/sounds/Space Ambience.mp3',  // Placeholder: Replace with actual Pink Noise
   },
   // SHA-256 hashes for integrity verification
   HASHES: {
@@ -96,6 +98,8 @@ export const AUDIO = {
     markDone: 'f44044c6a0203e4ce5389a0e3c4128f157b7a51d8541b6e3258fe6c9ae063bf4',
     reminder: '7ec6bab782b6d60f2df8ca2760113a514918253e5bd65f08c9945758c4e3629a',
     ambient: '8ed7a8ad746ce3ebd6bc31c03fd5af658a68c11519e8cc2715a1f1b1288e8ddf',
+    brownNoise: '8ed7a8ad746ce3ebd6bc31c03fd5af658a68c11519e8cc2715a1f1b1288e8ddf', // Same hash as ambient for now
+    pinkNoise: '8ed7a8ad746ce3ebd6bc31c03fd5af658a68c11519e8cc2715a1f1b1288e8ddf', // Same hash as ambient for now
   },
   VOLUMES: {
     newItem: 0.3,
@@ -103,6 +107,8 @@ export const AUDIO = {
     markDone: 0.3,
     reminder: 0.2,
     ambient: 0.08,
+    brownNoise: 0.12,
+    pinkNoise: 0.08,
   },
   DEBOUNCE_MS: 80,
   REMINDER_INTERVAL_MS: 3 * 60 * 60 * 1000, // 3 hours between reminders

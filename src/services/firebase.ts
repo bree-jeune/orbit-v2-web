@@ -1,8 +1,7 @@
-
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { getAnalytics } from "firebase/analytics";
-import { STORAGE_KEYS } from '../config/constants';
+import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
 import { OrbitItem } from '../engine/types';
 
 // Initialize Firebase only if config is present
@@ -17,16 +16,34 @@ const firebaseConfig = {
 };
 
 let db = null;
-let isInitialized = false;
+let auth = null;
 let analytics = null;
+let isInitialized = false;
+let currentUser: User | null = null;
 
 if (firebaseConfig.apiKey) {
     if (getApps().length === 0) {
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
+        auth = getAuth(app);
         analytics = getAnalytics(app);
         isInitialized = true;
-        console.log('[Firebase] Initialized with Analytics');
+        console.log('[Firebase] Initialized with Analytics & Auth');
+
+        // Auto-sign in anonymously
+        signInAnonymously(auth).catch((error) => {
+            console.error('[Firebase] Auth failed', error);
+        });
+
+        // Track auth state
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                console.log('[Firebase] Signed in as', user.uid);
+            } else {
+                console.log('[Firebase] Signed out');
+            }
+        });
     }
 } else {
     console.log('[Firebase] Skipping initialization - no config found');
@@ -37,18 +54,13 @@ export const firebaseService = {
 
     /**
      * Sync complete state to cloud
-     * For MVP, we just overwrite a single document for the user
-     * In production, this would be user-specific (auth required)
+     * Uses authenticated user ID
      */
     async syncState(items: OrbitItem[]) {
-        if (!db) return;
-
-        // For MVP demo, we use a single global 'demo-user' doc
-        // In real app, use auth.currentUser.uid
-        const userId = localStorage.getItem('orbit_user_id') || 'demo_user';
+        if (!db || !currentUser) return;
 
         try {
-            await setDoc(doc(db, 'orbits', userId), {
+            await setDoc(doc(db, 'orbits', currentUser.uid), {
                 items,
                 updatedAt: new Date().toISOString()
             }, { merge: true });
@@ -59,17 +71,32 @@ export const firebaseService = {
 
     /**
      * Subscribe to remote changes
+     * Waits for auth before setting up listener
      */
     subscribeToRemote(callback: (items: OrbitItem[]) => void) {
-        if (!db) return () => { };
+        if (!db || !auth) return () => { };
 
-        const userId = localStorage.getItem('orbit_user_id') || 'demo_user';
+        // If already signed in, subscribe immediately
+        if (currentUser) {
+            return setupListener(currentUser.uid, callback);
+        }
 
-        return onSnapshot(doc(db, 'orbits', userId), (doc) => {
-            const data = doc.data();
-            if (data && data.items) {
-                callback(data.items as OrbitItem[]);
+        // Otherwise wait for auth
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setupListener(user.uid, callback);
             }
         });
+
+        return unsubscribeAuth;
     }
 };
+
+function setupListener(userId: string, callback: (items: OrbitItem[]) => void) {
+    return onSnapshot(doc(db, 'orbits', userId), (doc) => {
+        const data = doc.data();
+        if (data && data.items) {
+            callback(data.items as OrbitItem[]);
+        }
+    });
+}

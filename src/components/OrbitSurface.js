@@ -49,6 +49,7 @@ export default function OrbitSurface() {
     playReminder,
     toggleMusic,
     isMusicPlaying,
+    switchNoise,
   } = useAudio();
 
   // Initialize store, auto-recompute, and check first run
@@ -190,6 +191,9 @@ export default function OrbitSurface() {
       }
 
       // Pass audio params to music toggle/hook if we were implementing dynamic audio
+      if (newTheme.audio.noiseType) {
+        switchNoise(newTheme.audio.noiseType);
+      }
       // console.log('Audio Vibe:', newTheme.audio);
 
     } catch (error) {
@@ -216,7 +220,8 @@ export default function OrbitSurface() {
       onClick={() => setExpandedId(null)}
       style={{
         background: theme ? theme.visual.background : undefined,
-        transition: 'background 2s ease-in-out'
+        color: theme ? theme.visual.textColor : undefined,
+        transition: 'background 2s ease-in-out, color 2s ease-in-out'
       }}
     >
       {/* Walkthrough for first-time users */}
