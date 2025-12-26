@@ -5,7 +5,7 @@ const webpack = require("webpack");
 const Dotenv = require('dotenv-webpack');
 
 module.exports = (env, argv) => {
-  const isProduction = argv.mode === 'production';
+  const isProduction = argv.mode === 'production' || process.env.NODE_ENV === 'production';
 
   return {
     mode: isProduction ? "production" : "development",
