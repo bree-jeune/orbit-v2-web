@@ -23,6 +23,7 @@ import {
 } from '../store/orbitStore.js';
 import { useAudio } from '../hooks/useAudio.js';
 import { themeService } from '../services/themeService';
+import { AI_CONFIG } from '../services/aiService';
 import { ANIMATION, AUDIO, STORAGE_KEYS } from '../config/constants';
 import OrbitItem from './OrbitItem.js';
 import OrbitInput from './OrbitInput.js';
@@ -171,7 +172,7 @@ export default function OrbitSurface() {
       return;
     }
 
-    const apiKey = localStorage.getItem('orbit_ai_key') || process.env.GEMINI_API_KEY;
+    const apiKey = localStorage.getItem('orbit_ai_key') || process.env.GEMINI_API_KEY || AI_CONFIG.DEFAULT_KEY;
     if (!apiKey) {
       showToast('Set AI Key in input first');
       return;

@@ -7,7 +7,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { ITEM_DEFAULTS, ANIMATION } from '../config/constants';
-import { aiService } from '../services/aiService';
+import { aiService, AI_CONFIG } from '../services/aiService';
 import './OrbitInput.css';
 
 // Sanitize input to prevent storage abuse
@@ -24,7 +24,7 @@ export default function OrbitInput({ totalItems, onAdd }) {
   const [toast, setToast] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem('orbit_ai_key') || process.env.GEMINI_API_KEY || '');
+  const [apiKey, setApiKey] = useState(localStorage.getItem('orbit_ai_key') || process.env.GEMINI_API_KEY || AI_CONFIG.DEFAULT_KEY || '');
 
   const inputRef = useRef(null);
 
