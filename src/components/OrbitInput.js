@@ -24,7 +24,14 @@ export default function OrbitInput({ totalItems, onAdd }) {
   const [toast, setToast] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem('orbit_ai_key') || process.env.GEMINI_API_KEY || AI_CONFIG.DEFAULT_KEY || '');
+  const [apiKey, setApiKey] = useState(() => {
+    const envKey = process.env.GEMINI_API_KEY;
+    const localKey = localStorage.getItem('orbit_ai_key');
+    const finalKey = (envKey && envKey !== 'undefined') ? envKey : (localKey && localKey !== 'undefined') ? localKey : AI_CONFIG.DEFAULT_KEY;
+
+    console.log('[AI] Key loaded from:', envKey ? 'Environment' : localKey ? 'LocalStorage' : 'Default Fallback');
+    return finalKey || '';
+  });
 
   const inputRef = useRef(null);
 

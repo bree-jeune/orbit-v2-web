@@ -172,7 +172,9 @@ export default function OrbitSurface() {
       return;
     }
 
-    const apiKey = localStorage.getItem('orbit_ai_key') || process.env.GEMINI_API_KEY || AI_CONFIG.DEFAULT_KEY;
+    const envKey = process.env.GEMINI_API_KEY;
+    const localKey = localStorage.getItem('orbit_ai_key');
+    const apiKey = (envKey && envKey !== 'undefined') ? envKey : (localKey && localKey !== 'undefined') ? localKey : AI_CONFIG.DEFAULT_KEY;
     if (!apiKey) {
       showToast('Set AI Key in input first');
       return;

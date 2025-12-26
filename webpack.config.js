@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
@@ -64,14 +65,7 @@ module.exports = (env, argv) => {
         ],
       }),
       new Dotenv({
-        path: './.env.local', // Path to .env.local
-        safe: false, // load .env.example (defaults to "false" which is what we want)
-        systemvars: true, // load all the predefined 'process.env' variables which will trump anything local per dotenv specs.
-        silent: true, // hide any errors
-        defaults: false, // load '.env.defaults' as the default values if empty.
-      }),
-      new Dotenv({
-        path: './.env',
+        path: path.resolve(__dirname, fs.existsSync('.env.local') ? '.env.local' : '.env'),
         systemvars: true,
         silent: true,
       }),
