@@ -2,8 +2,8 @@
 import { OrbitItem } from '../engine/types';
 
 export const AI_CONFIG = {
-    MODEL: 'gemini-2.0-flash',
-    API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+    MODEL: 'gemini-1.5-flash',
+    API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
     DEFAULT_KEY: 'AIzaSyBbQ1gLgv6-Wj-jLgPTXzF1MrPYzuRfYMo',
 };
 
@@ -44,11 +44,20 @@ export const aiService = {
                 },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        topP: 0.95,
+                        topK: 40,
+                        maxOutputTokens: 1024,
+                        responseMimeType: "application/json"
+                    }
                 }),
             });
 
             if (!response.ok) {
-                throw new Error('AI Service request failed');
+                const errorData = await response.text();
+                console.error('AI Service Error Body:', errorData);
+                throw new Error(`AI Service request failed: ${response.status}`);
             }
 
             const data = await response.json();

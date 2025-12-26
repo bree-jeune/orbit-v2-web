@@ -42,8 +42,6 @@ export const themeService = {
         "audio": {
           "bpm": number (40-100),
           "roughness": number (0.0 to 1.0),
-          "bpm": number (40-100),
-          "roughness": number (0.0 to 1.0),
           "key": "musical key string",
           "noiseType": "brownNoise" | "pinkNoise" | "ambient" (Use brown for focus/deep work, pink for balance, ambient for space)
         },
@@ -59,11 +57,20 @@ export const themeService = {
                 },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.8,
+                        topP: 0.95,
+                        topK: 40,
+                        maxOutputTokens: 1024,
+                        responseMimeType: "application/json"
+                    }
                 }),
             });
 
             if (!response.ok) {
-                throw new Error('Theme Service request failed');
+                const errorData = await response.text();
+                console.error('Theme Service Error Body:', errorData);
+                throw new Error(`Theme Service request failed: ${response.status}`);
             }
 
             const data = await response.json();
