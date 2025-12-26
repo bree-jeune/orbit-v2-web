@@ -20,8 +20,10 @@ const ENCRYPTION_ENABLED = true;
  */
 export async function getAllItems() {
   try {
-    // Try Chrome storage first (for extension)
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    // Try Chrome storage first (only if in actual extension context)
+    const isExtension = typeof chrome !== 'undefined' && chrome.runtime?.id && chrome.storage?.local;
+
+    if (isExtension) {
       return new Promise((resolve) => {
         chrome.storage.local.get([STORAGE_KEY], (result) => {
           resolve(result[STORAGE_KEY] || []);
@@ -55,7 +57,9 @@ export async function getAllItems() {
 export async function saveAllItems(items) {
   try {
     // Try Chrome storage first
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const isExtension = typeof chrome !== 'undefined' && chrome.runtime?.id && chrome.storage?.local;
+
+    if (isExtension) {
       return new Promise((resolve) => {
         chrome.storage.local.set({ [STORAGE_KEY]: items }, resolve);
       });
@@ -118,7 +122,9 @@ export async function removeItem(id) {
  */
 export async function getSettings() {
   try {
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const isExtension = typeof chrome !== 'undefined' && chrome.runtime?.id && chrome.storage?.local;
+
+    if (isExtension) {
       return new Promise((resolve) => {
         chrome.storage.local.get([SETTINGS_KEY], (result) => {
           resolve(result[SETTINGS_KEY] || defaultSettings());
@@ -140,7 +146,9 @@ export async function getSettings() {
  */
 export async function saveSettings(settings) {
   try {
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const isExtension = typeof chrome !== 'undefined' && chrome.runtime?.id && chrome.storage?.local;
+
+    if (isExtension) {
       return new Promise((resolve) => {
         chrome.storage.local.set({ [SETTINGS_KEY]: settings }, resolve);
       });
