@@ -18,10 +18,9 @@ function sanitizeInput(value) {
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control chars
 }
 
-export default function OrbitInput({ totalItems, onAdd }) {
+export default function OrbitInput({ totalItems, onAdd, showToast }) {
   const [inputValue, setInputValue] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
-  const [toast, setToast] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [apiKey, setApiKey] = useState(() => {
@@ -84,25 +83,11 @@ export default function OrbitInput({ totalItems, onAdd }) {
     setIsAiLoading(true);
     try {
       const result = await aiService.parseInput(value, apiKey);
-
-      // Use the parsed result
-      // For now, we just use the clean title and maybe details
-      // In a real implementation, we'd pass the full metadata to onAdd
-      // But we need to update safeAdd first to accept objects.
-
-      // Temporary: Append detail to title if present to show it worked
-      let finalTitle = result.title;
-      if (result.suggestedTime !== undefined) {
-        // Hacky way to simulate context for now
-        console.log(`AIContext: Time=${result.suggestedTime}, Context=${result.suggestedContext}`);
-      }
-
-      onAdd(finalTitle, result.detail);
+      onAdd(result.title, result.detail);
       setInputValue('');
       showToast(`✨ Magic added: ${result.title}`);
     } catch (err) {
       showToast('❌ AI Failed: Check API Key');
-      // If auth error, maybe prompt key again
       if (err.message.includes('400') || err.message.includes('403')) {
         setShowApiKeyModal(true);
       }
@@ -121,15 +106,10 @@ export default function OrbitInput({ totalItems, onAdd }) {
 
   const showSuccessToast = (count) => {
     if (count >= ITEM_DEFAULTS.MAX_VISIBLE) {
-      showToast('Added to orbit (in background)');
+      showToast('Added to orbit');
     } else {
       showToast('Added');
     }
-  };
-
-  const showToast = (message) => {
-    setToast(message);
-    setTimeout(() => setToast(null), ANIMATION.TOAST_DURATION);
   };
 
   return (
@@ -145,7 +125,7 @@ export default function OrbitInput({ totalItems, onAdd }) {
             onChange={(e) => setInputValue(e.target.value)}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
-            placeholder={isAiLoading ? "Processing..." : "/ add item (Cmd+Enter for AI)"}
+            placeholder={isAiLoading ? "Processing..." : "what's on your mind? (type / to add)"}
             spellCheck={false}
             maxLength={ITEM_DEFAULTS.MAX_TITLE_LENGTH}
             autoComplete="off"
@@ -157,6 +137,7 @@ export default function OrbitInput({ totalItems, onAdd }) {
               className="ai-trigger"
               onClick={handleAiSubmit}
               title="Use AI (Cmd+Enter)"
+              aria-label="Process with AI"
             >
               ✨
             </button>
@@ -164,18 +145,17 @@ export default function OrbitInput({ totalItems, onAdd }) {
         </form>
       </div>
 
-      {toast && <div className="toast">{toast}</div>}
-
       {showApiKeyModal && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-overlay" onClick={() => setShowApiKeyModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>Enter Gemini API Key</h3>
-            <p>To use AI features, you need a Google Gemini API key.</p>
+            <p>To use AI features, you need a Google Gemini API key. This will be stored locally in your browser.</p>
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="AIzaSy..."
+              autoFocus
             />
             <div className="modal-actions">
               <button onClick={() => setShowApiKeyModal(false)}>Cancel</button>
@@ -186,16 +166,4 @@ export default function OrbitInput({ totalItems, onAdd }) {
       )}
     </>
   );
-}
-
-// Export a hook for parent components that need toast functionality
-export function useToast() {
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, duration = ANIMATION.TOAST_DURATION) => {
-    setToast(message);
-    setTimeout(() => setToast(null), duration);
-  };
-
-  return { toast, showToast };
 }

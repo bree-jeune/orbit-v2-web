@@ -81,7 +81,7 @@ export default function ModeSelector({ currentMode, onModeChange, onModeSwitch }
     setModes(newModes);
     saveModes(newModes);
     setLongPressMode(null);
-    
+
     // Switch to first mode if deleting current
     if (mode === currentMode) {
       onModeSwitch?.();
@@ -123,12 +123,11 @@ export default function ModeSelector({ currentMode, onModeChange, onModeSwitch }
   return (
     <div
       className="mode-selector"
-      style={{ position: 'fixed', top: '24px', left: '24px', zIndex: 100 }}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Branding */}
-      <div className="brand">
-        <div className="brand-icon" />
+      <div className="brand" aria-label="Orbit Branding">
+        <div className="brand-icon" aria-hidden="true" />
         <span>orbit</span>
       </div>
 

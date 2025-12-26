@@ -160,10 +160,11 @@ export default function OrbitSurface() {
     showToast('Marked done');
   }, [playMarkDone]);
 
-  const showToast = (message) => {
+  const showToast = useCallback((message) => {
     setToast(message);
+    // Use the constant but allow override if needed
     setTimeout(() => setToast(null), ANIMATION.TOAST_DURATION);
-  };
+  }, []);
 
   const handleGenerateTheme = async () => {
     // Check if we have items
@@ -293,11 +294,11 @@ export default function OrbitSurface() {
 
       {/* Empty state */}
       {visibleItems.length === 0 && !showWalkthrough && (
-        <div className="empty">press / to add</div>
+        <div className="empty">what's on your mind?</div>
       )}
 
       {/* Input */}
-      <OrbitInput totalItems={items.length} onAdd={handleAddItem} />
+      <OrbitInput totalItems={items.length} onAdd={handleAddItem} showToast={showToast} />
 
       {/* Toast notification */}
       {toast && <div className="toast">{toast}</div>}

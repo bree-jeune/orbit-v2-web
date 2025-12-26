@@ -21,7 +21,7 @@ module.exports = (env, argv) => {
     devServer: {
       static: ["./dist", "./public"],
       hot: true,
-      port: 3000,
+      port: 3001,
       historyApiFallback: true,
     },
     module: {

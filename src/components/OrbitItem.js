@@ -67,6 +67,10 @@ export default function OrbitItem({
   return (
     <div
       className={`item ${hovered ? 'hovered' : ''} ${isExpanded ? 'expanded' : ''} ${item.signals.isPinned ? 'pinned' : ''}`}
+      role="button"
+      tabIndex={0}
+      aria-label={`${item.title}, ${item.signals.isPinned ? 'pinned' : ''}`}
+      aria-expanded={isExpanded}
       style={{
         '--angle': `${angle}deg`,
         '--distance': `${baseDistance}px`,
@@ -79,35 +83,40 @@ export default function OrbitItem({
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setHovered(false)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick(e);
+        }
+      }}
     >
       <div className="dot" />
 
-      {/* Label - shows on hover */}
+      {/* Label - shows on hover or expansion */}
       <div className={`label ${hovered || isExpanded ? 'visible' : ''}`}>
         {item.title}
       </div>
 
       {/* Action buttons - show when expanded */}
-      {isExpanded && (
-        <div className="actions">
-          <button onClick={(e) => { e.stopPropagation(); onDone?.(); }} title="Done" className="done">
-            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); onQuiet(); }} title="Later">
-            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zm7-3.25v2.992l2.028.812a.75.75 0 01-.557 1.392l-2.5-1A.75.75 0 017 8.25v-3.5a.75.75 0 011.5 0z"/></svg>
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onPin(); }}
-            title={item.signals.isPinned ? 'Unpin' : 'Pin'}
-            className={item.signals.isPinned ? 'active' : ''}
-          >
-            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.456.734a1.75 1.75 0 012.826.504l.613 1.327a3.08 3.08 0 002.084 1.707l2.454.584c1.332.317 1.8 1.972.832 2.94L11.06 10l3.72 3.72a.75.75 0 11-1.06 1.06L10 11.06l-2.204 2.205c-.968.968-2.623.5-2.94-.832l-.584-2.454a3.08 3.08 0 00-1.707-2.084l-1.327-.613a1.75 1.75 0 01-.504-2.826L4.456.734z"/></svg>
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); onRemove(); }} title="Remove" className="danger">
-            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg>
-          </button>
-        </div>
-      )}
+      <div className="actions">
+        <button onClick={(e) => { e.stopPropagation(); onDone?.(); }} title="Done" className="done" aria-label="Mark as done">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" /></svg>
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); onQuiet(); }} title="Later" aria-label="Remind me later">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zm7-3.25v2.992l2.028.812a.75.75 0 01-.557 1.392l-2.5-1A.75.75 0 017 8.25v-3.5a.75.75 0 011.5 0z" /></svg>
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onPin(); }}
+          title={item.signals.isPinned ? 'Unpin' : 'Pin'}
+          className={item.signals.isPinned ? 'active' : ''}
+          aria-label={item.signals.isPinned ? 'Unpin item' : 'Pin item'}
+        >
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.456.734a1.75 1.75 0 012.826.504l.613 1.327a3.08 3.08 0 002.084 1.707l2.454.584c1.332.317 1.8 1.972.832 2.94L11.06 10l3.72 3.72a.75.75 0 11-1.06 1.06L10 11.06l-2.204 2.205c-.968.968-2.623.5-2.94-.832l-.584-2.454a3.08 3.08 0 00-1.707-2.084l-1.327-.613a1.75 1.75 0 01-.504-2.826L4.456.734z" /></svg>
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); onRemove(); }} title="Remove" className="danger" aria-label="Remove item">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z" /></svg>
+        </button>
+      </div>
     </div>
   );
 }
