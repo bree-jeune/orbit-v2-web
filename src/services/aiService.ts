@@ -20,6 +20,9 @@ export const aiService = {
      * Parse natural language input into structured data
      */
     async parseInput(text: string, apiKey: string): Promise<AIParsedResult> {
+        const keySnippet = apiKey ? `${apiKey.substring(0, 6)}...` : 'NONE';
+        console.log(`[AI] Parsing input with key: ${keySnippet}`);
+
         const prompt = `
       You are an intelligent assistant for a task management app called Orbit.
       Analyze the following user input and extract the intent.

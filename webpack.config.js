@@ -64,7 +64,16 @@ module.exports = (env, argv) => {
         ],
       }),
       new Dotenv({
-        systemvars: true, // Load system variables as well (e.g. from CI/CD or shell exports)
+        path: './.env.local', // Path to .env.local
+        safe: false, // load .env.example (defaults to "false" which is what we want)
+        systemvars: true, // load all the predefined 'process.env' variables which will trump anything local per dotenv specs.
+        silent: true, // hide any errors
+        defaults: false, // load '.env.defaults' as the default values if empty.
+      }),
+      new Dotenv({
+        path: './.env',
+        systemvars: true,
+        silent: true,
       }),
     ],
     resolve: {
