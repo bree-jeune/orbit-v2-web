@@ -18,19 +18,19 @@ function sanitizeInput(value) {
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control chars
 }
 
-export default function OrbitInput({ totalItems, onAdd, showToast }) {
+export default function OrbitInput({ totalItems, onAdd, showToast, aiKey: propAiKey, onUpdateAiKey }) {
   const [inputValue, setInputValue] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [apiKey, setApiKey] = useState(() => {
-    const envKey = process.env.GEMINI_API_KEY;
-    const localKey = localStorage.getItem('orbit_ai_key');
-    const finalKey = (envKey && envKey !== 'undefined') ? envKey : (localKey && localKey !== 'undefined') ? localKey : AI_CONFIG.DEFAULT_KEY;
 
-    console.log('[AI] Key loaded from:', envKey ? 'Environment' : localKey ? 'LocalStorage' : 'Default Fallback');
-    return finalKey || '';
-  });
+  // Local state for the modal input, initialized from prop or localStorage
+  const [apiKey, setApiKey] = useState(propAiKey || localStorage.getItem('orbit_ai_key') || '');
+
+  // Keep internal apiKey in sync with prop if prop changes
+  useEffect(() => {
+    if (propAiKey) setApiKey(propAiKey);
+  }, [propAiKey]);
 
   const inputRef = useRef(null);
 
@@ -98,9 +98,12 @@ export default function OrbitInput({ totalItems, onAdd, showToast }) {
 
   const saveApiKey = () => {
     if (apiKey.trim()) {
-      localStorage.setItem('orbit_ai_key', apiKey.trim());
+      if (onUpdateAiKey) {
+        onUpdateAiKey(apiKey.trim());
+      } else {
+        localStorage.setItem('orbit_ai_key', apiKey.trim());
+      }
       setShowApiKeyModal(false);
-      showToast('API Key Saved');
     }
   };
 
@@ -125,7 +128,7 @@ export default function OrbitInput({ totalItems, onAdd, showToast }) {
             onChange={(e) => setInputValue(e.target.value)}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
-            placeholder={isAiLoading ? "Processing..." : "what's on your mind? (type / to add)"}
+            placeholder={isAiLoading ? "Processing..." : "(Add an item to orbit)"}
             spellCheck={false}
             maxLength={ITEM_DEFAULTS.MAX_TITLE_LENGTH}
             autoComplete="off"
@@ -139,7 +142,9 @@ export default function OrbitInput({ totalItems, onAdd, showToast }) {
               title="Use AI (Cmd+Enter)"
               aria-label="Process with AI"
             >
-              ✨
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
             </button>
           )}
         </form>

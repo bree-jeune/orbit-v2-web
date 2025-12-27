@@ -30,6 +30,8 @@ import OrbitInput from './OrbitInput.js';
 import MusicToggle from './MusicToggle.js';
 import ModeSelector from './ModeSelector.js';
 import Walkthrough, { shouldShowWalkthrough } from './Walkthrough.js';
+import Settings from './Settings.js';
+import { firebaseService } from '../services/firebase';
 import './OrbitSurface.css';
 
 export default function OrbitSurface() {
@@ -40,6 +42,8 @@ export default function OrbitSurface() {
   const [transitionClass, setTransitionClass] = useState('');
   const [theme, setTheme] = useState(null);
   const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [aiKey, setAiKey] = useState(localStorage.getItem('orbit_ai_key') || '');
   const reminderTimeoutRef = useRef(null);
   const lastReminderRef = useRef(null);
 
@@ -51,6 +55,7 @@ export default function OrbitSurface() {
     toggleMusic,
     isMusicPlaying,
     switchNoise,
+    noiseType,
   } = useAudio();
 
   // Initialize store, auto-recompute, and check first run
@@ -146,6 +151,19 @@ export default function OrbitSurface() {
       setPlace(newMode);
       setTimeout(() => setTransitionClass(''), 600);
     }, 300);
+  }, []);
+
+  const handleUpdateAiKey = useCallback((key) => {
+    localStorage.setItem('orbit_ai_key', key);
+    setAiKey(key);
+    showToast('AI Key updated');
+  }, [showToast]);
+
+  const handleClearData = useCallback(() => {
+    if (window.confirm('Are you sure? This will delete all local data.')) {
+      localStorage.clear();
+      window.location.reload();
+    }
   }, []);
 
   const handleAddItem = useCallback((title, detail = '') => {
@@ -253,7 +271,19 @@ export default function OrbitSurface() {
           onClick={(e) => { e.stopPropagation(); handleGenerateTheme(); }}
           title="Generate Ambient Theme"
         >
-          🎨
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          </svg>
+        </button>
+        <button
+          className="settings-btn"
+          onClick={(e) => { e.stopPropagation(); setShowSettings(true); }}
+          title="Settings"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
         </button>
       </div>
 
@@ -298,7 +328,36 @@ export default function OrbitSurface() {
       )}
 
       {/* Input */}
-      <OrbitInput totalItems={items.length} onAdd={handleAddItem} showToast={showToast} />
+      <OrbitInput
+        totalItems={items.length}
+        onAdd={handleAddItem}
+        showToast={showToast}
+        aiKey={aiKey}
+        onUpdateAiKey={handleUpdateAiKey}
+      />
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <Settings
+          onClose={() => setShowSettings(false)}
+          audioSettings={{
+            isMusicPlaying,
+            noiseType,
+            toggleMusic,
+            switchNoise,
+          }}
+          aiStatus={{
+            isReady: !!aiKey,
+            key: aiKey,
+          }}
+          firebaseStatus={{
+            isAvailable: firebaseService.isAvailable,
+            userId: firebaseService.getUserId(),
+          }}
+          onUpdateAiKey={handleUpdateAiKey}
+          onClearData={handleClearData}
+        />
+      )}
 
       {/* Toast notification */}
       {toast && <div className="toast">{toast}</div>}

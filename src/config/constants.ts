@@ -90,6 +90,7 @@ export const AUDIO = {
     ambient: '/sounds/Space Ambience.mp3',
     brownNoise: '/sounds/Space Ambience.mp3', // Placeholder: Replace with actual Brown Noise
     pinkNoise: '/sounds/Space Ambience.mp3',  // Placeholder: Replace with actual Pink Noise
+    whiteNoise: '/sounds/Space Ambience.mp3', // Placeholder: Replace with actual White Noise
   },
   // SHA-256 hashes for integrity verification
   HASHES: {
@@ -100,6 +101,7 @@ export const AUDIO = {
     ambient: '8ed7a8ad746ce3ebd6bc31c03fd5af658a68c11519e8cc2715a1f1b1288e8ddf',
     brownNoise: '8ed7a8ad746ce3ebd6bc31c03fd5af658a68c11519e8cc2715a1f1b1288e8ddf', // Same hash as ambient for now
     pinkNoise: '8ed7a8ad746ce3ebd6bc31c03fd5af658a68c11519e8cc2715a1f1b1288e8ddf', // Same hash as ambient for now
+    whiteNoise: '8ed7a8ad746ce3ebd6bc31c03fd5af658a68c11519e8cc2715a1f1b1288e8ddf', // Same hash as ambient for now
   },
   VOLUMES: {
     newItem: 0.3,

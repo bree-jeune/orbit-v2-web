@@ -32,7 +32,10 @@ if (firebaseConfig.apiKey) {
 
         // Auto-sign in anonymously
         signInAnonymously(auth).catch((error) => {
-            console.error('[Firebase] Auth failed', error);
+            console.error('[Firebase] Auth failed. If using Anonymous Auth, check if it is ENABLED in the Firebase Console.', error);
+            if (error.code === 'auth/admin-restricted-operation') {
+                console.warn('[Firebase] IMPORTANT: You must enable "Anonymous" sign-in provider in Authentication > Sign-in method in the Firebase Console.');
+            }
         });
 
         // Track auth state
@@ -89,6 +92,10 @@ export const firebaseService = {
         });
 
         return unsubscribeAuth;
+    },
+
+    getUserId() {
+        return currentUser?.uid || null;
     }
 };
 

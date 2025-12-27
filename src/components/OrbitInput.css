@@ -1,37 +1,40 @@
 .input-container {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
   margin: 0 auto;
+  transition: max-width var(--transition-base);
+}
+
+.input-container:focus-within {
+  max-width: 500px;
 }
 
 .add input {
   width: 100%;
-  padding: 16px 54px 16px 24px;
-  font-family: inherit;
+  padding: 14px 60px 14px 24px;
   font-size: 15px;
   font-weight: 500;
+  line-height: normal;
   color: var(--text-primary);
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-  border-radius: 16px;
+  border-radius: 20px;
   outline: none;
-  text-align: left;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: var(--transition-base);
+  box-shadow: var(--shadow-md);
 }
 
 .add input::placeholder {
   color: var(--text-muted);
-  text-align: left;
+  opacity: 0.8;
 }
 
 .add input:focus {
   background: var(--glass-bg-hover);
   border-color: var(--accent-blue-glow);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 8px 32px rgba(0, 0, 0, 0.3);
-  width: 520px;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--accent-blue-glow);
 }
 
 .ai-trigger {
@@ -39,85 +42,75 @@
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  opacity: 0.8;
-  transition: all 0.2s;
-  z-index: 2;
+  border-radius: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  transition: var(--transition-base);
 }
 
 .ai-trigger:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-50%) scale(1.05);
-  border-color: var(--accent-teal);
+  background: var(--glass-bg-hover);
+  color: var(--accent-teal);
+  border-color: var(--accent-teal-glow);
+  transform: translateY(-50%) translateY(-1px);
 }
 
 .loading input {
   opacity: 0.6;
-  cursor: wait;
 }
 
+/* Modal */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(12px);
+  animation: fadeIn var(--transition-base);
 }
 
 .modal {
-  background: rgba(22, 27, 34, 0.95);
+  background: var(--bg-surface);
   padding: 32px;
-  border-radius: 20px;
+  border-radius: 24px;
   width: 90%;
   max-width: 400px;
   border: 1px solid var(--glass-border);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-l);
-  transform: translateY(0);
-  animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @keyframes modalIn {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
+    transform: scale(0.95) translateY(10px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
 .modal h3 {
-  margin-top: 0;
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 8px;
-  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
 }
 
 .modal p {
   color: var(--text-secondary);
   font-size: 14px;
-  line-height: 1.5;
   margin-bottom: 24px;
 }
 
@@ -125,13 +118,11 @@
   width: 100%;
   padding: 14px 16px;
   margin-bottom: 24px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--glass-border);
-  color: var(--text-primary);
   border-radius: 12px;
-  font-family: inherit;
   font-size: 14px;
-  transition: all 0.2s;
+  transition: var(--transition-base);
 }
 
 .modal input:focus {
@@ -148,24 +139,23 @@
 
 .modal button {
   padding: 10px 20px;
-  background: transparent;
-  border: 1px solid var(--glass-border);
-  color: var(--text-secondary);
   border-radius: 10px;
-  cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.2s;
+  transition: var(--transition-base);
 }
 
-.modal button:hover {
+.modal button:not(.primary) {
+  color: var(--text-secondary);
+}
+
+.modal button:not(.primary):hover {
   background: var(--glass-bg-hover);
   color: var(--text-primary);
 }
 
 .modal button.primary {
   background: var(--accent-blue);
-  border-color: var(--accent-blue);
   color: white;
 }
 
