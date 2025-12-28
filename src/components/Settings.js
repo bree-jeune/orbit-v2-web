@@ -57,7 +57,7 @@ export default function Settings({
                                 </button>
                             ))}
                         </div>
-                        <p className="setting-hint">Uses 8D spatial audio to help you focus. Note: Colors other than Ambient use placeholders until files are uploaded.</p>
+                        <p className="setting-hint">Uses 8D spatial audio to help you focus. Noise colors are procedurally generated for maximum immersion.</p>
                     </div>
                 </div>
 

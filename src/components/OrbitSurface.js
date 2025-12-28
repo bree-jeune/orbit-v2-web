@@ -48,9 +48,16 @@ export default function OrbitSurface() {
   const [showVault, setShowVault] = useState(false);
   const [aiKey, setAiKey] = useState(() => {
     const localKey = localStorage.getItem('orbit_ai_key');
-    if (localKey && localKey !== 'undefined') return localKey;
+    if (localKey && localKey !== 'undefined' && localKey !== '') {
+      console.log('[Orbit] Using local API key');
+      return localKey;
+    }
     const envKey = process.env.GEMINI_API_KEY;
-    if (envKey && envKey !== 'undefined') return envKey;
+    if (envKey && envKey !== 'undefined' && envKey !== '') {
+      console.log('[Orbit] Using environment API key');
+      return envKey;
+    }
+    console.log('[Orbit] Using default API key');
     return AI_CONFIG.DEFAULT_KEY || '';
   });
   const reminderTimeoutRef = useRef(null);
