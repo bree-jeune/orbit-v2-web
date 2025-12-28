@@ -15,6 +15,7 @@ import {
   stopAutoRecompute,
   addToOrbit,
   markOpened,
+  boostItem,
   quiet,
   pin,
   unpin,
@@ -29,6 +30,7 @@ import OrbitItem from './OrbitItem.js';
 import OrbitInput from './OrbitInput.js';
 import MusicToggle from './MusicToggle.js';
 import ModeSelector from './ModeSelector.js';
+import Vault from './Vault.js';
 import Walkthrough, { shouldShowWalkthrough } from './Walkthrough.js';
 import Settings from './Settings.js';
 import { firebaseService } from '../services/firebase';
@@ -43,7 +45,14 @@ export default function OrbitSurface() {
   const [theme, setTheme] = useState(null);
   const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [aiKey, setAiKey] = useState(localStorage.getItem('orbit_ai_key') || '');
+  const [showVault, setShowVault] = useState(false);
+  const [aiKey, setAiKey] = useState(() => {
+    const localKey = localStorage.getItem('orbit_ai_key');
+    if (localKey && localKey !== 'undefined') return localKey;
+    const envKey = process.env.GEMINI_API_KEY;
+    if (envKey && envKey !== 'undefined') return envKey;
+    return AI_CONFIG.DEFAULT_KEY || '';
+  });
   const reminderTimeoutRef = useRef(null);
   const lastReminderRef = useRef(null);
 
@@ -116,6 +125,19 @@ export default function OrbitSurface() {
           // Update last reminder time
           lastReminderRef.current = now;
           localStorage.setItem(STORAGE_KEYS.LAST_REMINDER, now.toString());
+        } else if (oldItems.length > 0) {
+          // If not visible, boost the oldest one
+          const oldestItem = oldItems.sort((a, b) =>
+            new Date(a.signals.createdAt) - new Date(b.signals.createdAt)
+          )[0];
+
+          boostItem(oldestItem.id);
+          playReminder();
+          setExpandedId(oldestItem.id);
+          showToast(`${oldestItem.title} needs attention`);
+
+          lastReminderRef.current = now;
+          localStorage.setItem(STORAGE_KEYS.LAST_REMINDER, now.toString());
         }
       }
     };
@@ -138,6 +160,14 @@ export default function OrbitSurface() {
     const handleKey = (e) => {
       if (e.key === 'Escape') {
         setExpandedId(null);
+        setShowVault(false);
+        setShowSettings(false);
+      }
+      if (e.key === 'v' && !e.metaKey && !e.ctrlKey) {
+        // Toggle vault with 'v' if not in input
+        if (document.activeElement.tagName !== 'INPUT') {
+          setShowVault(v => !v);
+        }
       }
     };
     window.addEventListener('keydown', handleKey);
@@ -258,8 +288,8 @@ export default function OrbitSurface() {
         onModeSwitch={playModeSwitch}
       />
 
-      {/* Item count indicator */}
-      <div className="count">
+      {/* Item count indicator - clickable to open vault */}
+      <div className="count" onClick={(e) => { e.stopPropagation(); setShowVault(true); }} style={{ cursor: 'pointer' }} title="Open Vault">
         {visibleItems.length} of {items.length}
       </div>
 
@@ -273,6 +303,15 @@ export default function OrbitSurface() {
         >
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          </svg>
+        </button>
+        <button
+          className="settings-btn"
+          onClick={(e) => { e.stopPropagation(); setShowVault(true); }}
+          title="Open Vault"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
           </svg>
         </button>
         <button
@@ -356,6 +395,19 @@ export default function OrbitSurface() {
           }}
           onUpdateAiKey={handleUpdateAiKey}
           onClearData={handleClearData}
+        />
+      )}
+
+      {/* Vault Modal */}
+      {showVault && (
+        <Vault
+          items={items}
+          onClose={() => setShowVault(false)}
+          onPin={pin}
+          onUnpin={unpin}
+          onRemove={remove}
+          onDone={handleMarkDone}
+          onQuiet={(id) => quiet(id, 4)}
         />
       )}
 

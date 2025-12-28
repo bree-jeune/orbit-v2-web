@@ -105,15 +105,24 @@ export function getCurrentContext() {
   // Place defaults to unknown - user can set manually
   const place = localStorage.getItem(STORAGE_KEYS.CONTEXT) || 'unknown';
 
+  // Context buckets
+  const hour = now.getHours();
+  let timeBucket = 'night';
+  if (hour >= 5 && hour < 12) timeBucket = 'morning';
+  else if (hour >= 12 && hour < 17) timeBucket = 'afternoon';
+  else if (hour >= 17 && hour < 21) timeBucket = 'evening';
+
   return {
     now: now.toISOString(),
-    hour: now.getHours(),
+    hour,
     day: now.getDay(),
+    isWeekend: [0, 6].includes(now.getDay()),
+    timeBucket,
     device,
     place,
     sessionId: sessionStorage.getItem('orbit_session') || createSessionId(),
   };
-}
+};
 
 function createSessionId() {
   const id = crypto.randomUUID();

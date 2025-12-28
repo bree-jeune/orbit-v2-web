@@ -39,6 +39,11 @@ const STEPS = [
     description: 'Enable ambient audio for a focused, spatial experience. Your orbit breathes with you.',
     highlight: 'music',
   },
+  {
+    title: 'The Vault',
+    description: 'Store unlimited items. The top 5 orbit closer based on relevance, while the rest wait in your Vault.',
+    highlight: 'vault',
+  },
 ];
 
 export default function Walkthrough({ onComplete }) {

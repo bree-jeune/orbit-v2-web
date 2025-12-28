@@ -351,7 +351,7 @@
   color: var(--text-primary);
   box-shadow: var(--shadow-lg);
   animation: toastIn var(--transition-base) forwards;
-  z-index: 1000;
+  z-index: 3000;
 }
 
 @keyframes toastIn {
@@ -382,6 +382,7 @@
   backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-md);
   transition: var(--transition-base);
+  max-width: calc(100vw - 48px);
 }
 
 .mode-selector:hover {
@@ -393,6 +394,17 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+  padding-right: 12px;
+}
+
+.mode-pills::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari */
 }
 
 .mode-pill {
@@ -644,5 +656,46 @@
 
   to {
     opacity: 1;
+  }
+}
+
+/* Responsive Fixes */
+@media (max-width: 768px) {
+  .controls-row {
+    bottom: calc(var(--inset) + 72px);
+    right: var(--inset);
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .add {
+    bottom: 24px;
+    width: 90%;
+  }
+
+  .toast {
+    bottom: 160px;
+  }
+
+  .mode-selector {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .label-title {
+    max-width: 160px;
+  }
+
+  .walkthrough-card {
+    width: 90%;
+    margin: 0 5%;
+    padding: var(--space-lg);
+  }
+
+  .spotlight-input {
+    width: 90%;
   }
 }

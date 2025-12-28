@@ -23,17 +23,21 @@ export function computeRelevance(item, context) {
   // Time affinity - does this item historically appear at this hour/day?
   const timeScore = computeTimeAffinity(item, context);
   score += timeScore * WEIGHTS.TIME;
-  if (timeScore > 0.5) reasons.push('matches your usual time');
+  // Only show reason if we have enough historical data (e.g. 10 interactions)
+  const totalTimeInteractions = Object.values(item.signals.hourHistogram || {}).reduce((a, b) => a + b, 0);
+  if (timeScore > 0.5 && totalTimeInteractions > 10) reasons.push('matches your usual time');
 
   // Place affinity - does this item belong here?
   const placeScore = computePlaceAffinity(item, context);
   score += placeScore * WEIGHTS.PLACE;
-  if (placeScore > 0.5) reasons.push(`often seen at ${context.place}`);
+  const totalPlaceInteractions = Object.values(item.signals.placeHistogram || {}).reduce((a, b) => a + b, 0);
+  if (placeScore > 0.5 && totalPlaceInteractions > 5) reasons.push(`often seen at ${context.place}`);
 
   // Device affinity - desktop vs mobile context
   const deviceScore = computeDeviceAffinity(item, context);
   score += deviceScore * WEIGHTS.DEVICE;
-  if (deviceScore > 0.5) reasons.push(`fits ${context.device} context`);
+  const totalDeviceInteractions = Object.values(item.signals.deviceHistogram || {}).reduce((a, b) => a + b, 0);
+  if (deviceScore > 0.5 && totalDeviceInteractions > 5) reasons.push(`fits ${context.device} context`);
 
   // Recency boost - recently interacted items stay closer
   const recencyScore = computeRecencyBoost(item, context);
@@ -88,10 +92,25 @@ export function computeRelevance(item, context) {
 function computeTimeAffinity(item, context) {
   const { hourHistogram = {}, dayHistogram = {} } = item.signals;
 
-  // Hour affinity
-  const hourCount = hourHistogram[context.hour] || 0;
+  // Hour affinity with smoothing (±1 hour window)
+  const h = context.hour;
+  const hPrev = (h - 1 + 24) % 24;
+  const hNext = (h + 1) % 24;
+
+  const countH = hourHistogram[h] || 0;
+  const countPrev = hourHistogram[hPrev] || 0;
+  const countNext = hourHistogram[hNext] || 0;
+
+  // Weighted counts: Current (1.0), Neighbors (0.5)
+  const smoothedCount = countH + (countPrev * 0.5) + (countNext * 0.5);
   const totalHours = Object.values(hourHistogram).reduce((a, b) => a + b, 0);
-  const hourAffinity = totalHours > 0 ? hourCount / totalHours : 0;
+
+  // Normalize considering the weights (max theoretical count is totalHours * 1.5 if concentrated in window)
+  // But we want a percentage of probability. 
+  // Simplified: prob of current hour + half prob of neighbors
+  const hourProb = totalHours > 0 ? (countH / totalHours) : 0;
+  const neighborProb = totalHours > 0 ? ((countPrev + countNext) / totalHours) : 0;
+  const hourAffinity = Math.min(1, hourProb + neighborProb * 0.5);
 
   // Day affinity
   const dayCount = dayHistogram[context.day] || 0;
@@ -107,9 +126,14 @@ function computeTimeAffinity(item, context) {
  */
 function computePlaceAffinity(item, context) {
   const { placeHistogram = {} } = item.signals;
+
+  // If context is unknown, don't penalize - return a neutral-to-high score
+  if (context.place === 'unknown') return 0.8;
+
   const placeCount = placeHistogram[context.place] || 0;
   const total = Object.values(placeHistogram).reduce((a, b) => a + b, 0);
-  return total > 0 ? placeCount / total : 0;
+
+  return total > 0 ? placeCount / total : 0.5; // Default to 0.5 if no history
 }
 
 /**

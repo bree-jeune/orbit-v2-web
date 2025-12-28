@@ -287,6 +287,37 @@ export async function remove(id) {
 }
 
 /**
+ * Temporarily boost an item's score to surface it
+ */
+export async function boostItem(id) {
+  const item = state.items.find((i) => i.id === id);
+  if (!item) return;
+
+  const context = getCurrentContext();
+  const { all, visible } = rankItems(state.items, context);
+
+  const visibleIndex = visible.findIndex((v) => v.id === id);
+  if (visibleIndex === -1 && visible.length > 0) {
+    visible[visible.length - 1] = {
+      ...item,
+      computed: {
+        ...item.computed,
+        score: 0.99,
+        reasons: [...(item.computed?.reasons || []), 'needs attention'],
+      },
+    };
+  }
+
+  state = {
+    ...state,
+    items: all,
+    visibleItems: visible,
+  };
+
+  notify();
+}
+
+/**
  * Set current place (home/work/unknown)
  * @param {'home'|'work'|'unknown'} place
  */

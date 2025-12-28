@@ -35,7 +35,7 @@ export const ITEM_DEFAULTS = {
   QUIET_HOURS_DEFAULT: 4,   // Default quiet period in hours
   NOVELTY_HOURS: 24,        // Hours an item is considered "new"
   MAX_TITLE_LENGTH: 200,    // Maximum characters for item title
-  MAX_ITEMS: 500,           // Maximum total items in orbit
+  MAX_ITEMS: 10000,           // Effectively unlimited for a single user
 };
 
 // =============================================================================

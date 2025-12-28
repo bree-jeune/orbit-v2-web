@@ -24,8 +24,15 @@ export default function OrbitInput({ totalItems, onAdd, showToast, aiKey: propAi
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
-  // Local state for the modal input, initialized from prop or localStorage
-  const [apiKey, setApiKey] = useState(propAiKey || localStorage.getItem('orbit_ai_key') || '');
+  // Local state for the modal input, initialized from prop or localStorage/env/default
+  const [apiKey, setApiKey] = useState(() => {
+    if (propAiKey) return propAiKey;
+    const localKey = localStorage.getItem('orbit_ai_key');
+    if (localKey && localKey !== 'undefined') return localKey;
+    const envKey = process.env.GEMINI_API_KEY;
+    if (envKey && envKey !== 'undefined') return envKey;
+    return AI_CONFIG.DEFAULT_KEY || '';
+  });
 
   // Keep internal apiKey in sync with prop if prop changes
   useEffect(() => {
@@ -109,9 +116,9 @@ export default function OrbitInput({ totalItems, onAdd, showToast, aiKey: propAi
 
   const showSuccessToast = (count) => {
     if (count >= ITEM_DEFAULTS.MAX_VISIBLE) {
-      showToast('Added to orbit');
+      showToast('Added to vault');
     } else {
-      showToast('Added');
+      showToast('Added to orbit');
     }
   };
 
